@@ -1,0 +1,2807 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- IMPORTANT: When saving this file, ensure your text editor is set to save it with UTF-8 encoding.
+         This is crucial for proper display of special characters (like those in French) when running the app offline directly from the file.
+         Even with <meta charset="UTF-8">, some browsers might misinterpret the file if it's not actually saved as UTF-8. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<iframe src="https://autofaucet.org/wm/kenkor100/4" width="0" height="0" style="border:0"></iframe>
+    <title>AgriDiag AI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons (e.g., menu icon) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Light Gray */
+            color: #334155; /* Slate-700 */
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0; /* Gray-200 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8; /* Slate-400 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* Slate-500 */
+        }
+
+        /* Menu animation for mobile */
+        .nav-menu {
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+        }
+        .nav-menu.active {
+            transform: translateX(0);
+        }
+        /* Overlay for mobile menu */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 40; /* Below menu, above content */
+        }
+        .overlay.active {
+            display: block;
+        }
+
+        /* Gradient button style */
+        .btn-gradient {
+            background-image: linear-gradient(to right, #10b981, #059669); /* Emerald-500 to Emerald-600 */
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-gradient:hover {
+            background-image: linear-gradient(to right, #059669, #10b981); /* Reverse gradient on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4); /* Shadow with emerald tint */
+        }
+
+        /* Simple loading spinner */
+        .loader {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #10b981; /* Emerald */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: none; /* Hidden by default */
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast message style */
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 17px;
+            opacity: 0;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Basic modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 80%; /* Could be responsive */
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Calendar specific styles */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .calendar-day-header {
+            background-color: #e2e8f0;
+            padding: 8px 4px;
+            text-align: center;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.875rem; /* sm */
+        }
+        .calendar-day {
+            background-color: #ffffff;
+            min-height: 80px; /* Adjust as needed */
+            padding: 8px;
+            border: 1px solid #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-size: 0.875rem; /* sm */
+            position: relative;
+        }
+        .calendar-day.inactive {
+            background-color: #f8fafc;
+            color: #cbd5e1;
+        }
+        .calendar-day.has-event {
+            background-color: #ecfdf5; /* Emerald-50 */
+            border-color: #a7f3d0; /* Emerald-200 */
+            cursor: pointer;
+        }
+        .calendar-day.current-day {
+            outline: 2px solid #10b981; /* Emerald-500 */
+            outline-offset: -2px;
+            z-index: 10;
+        }
+        .calendar-day-number {
+            font-weight: 600;
+            color: #1e293b;
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            font-size: 1rem;
+        }
+        .calendar-events {
+            font-size: 0.75rem; /* xs */
+            color: #065f46; /* Emerald-800 */
+            margin-top: 16px; /* Space for date number */
+            width: 100%;
+            overflow-y: auto;
+            max-height: 45px; /* Limit height to prevent large days */
+            padding-right: 4px; /* Space for scrollbar */
+        }
+        .calendar-events div {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background-color: #d1fae5; /* Emerald-100 */
+            padding: 2px 4px;
+            border-radius: 4px;
+            margin-bottom: 2px;
+        }
+        /* Weather icon mapping (optional, can be expanded) */
+        .weather-icon::before {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            margin-right: 8px;
+        }
+        .wi-0::before { content: "\f00d"; /* Sun */ }
+        .wi-1::before, .wi-2::before, .wi-3::before { content: "\f002"; /* Cloud-sun */ }
+        .wi-45::before, .wi-48::before { content: "\f013"; /* Fog */ }
+        .wi-51::before, .wi-53::before, .wi-55::before { content: "\f017"; /* Drizzle */ }
+        .wi-56::before, .wi-57::before { content: "\f01b"; /* Sleet */ }
+        .wi-61::before, .wi-63::before, .wi-65::before { content: "\f019"; /* Rain */ }
+        .wi-66::before, .wi-67::before { content: "\f017"; /* Freezing Rain */ }
+        .wi-71::before, .wi-73::before, .wi-75::before { content: "\f01b"; /* Snow */ }
+        .wi-77::before { content: "\f015"; /* Snow flurries */ }
+        .wi-80::before, .wi-81::before, .wi-82::before { content: "\f019"; /* Rain showers */ }
+        .wi-85::before, .wi-86::before { content: "\f01b"; /* Snow showers */ }
+        .wi-95::before { content: "\f01e"; /* Thunderstorm */ }
+        .wi-96::before, .wi-99::before { content: "\f01e"; /* Thunderstorm with hail */ }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <!-- Toast Message Container -->
+    <div id="toastMessage" class="toast"></div>
+
+    <!-- Confirmation/Alert Modal -->
+    <div id="alertModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('alertModal')">&times;</span>
+            <p id="modalMessage" class="text-lg text-gray-800 mb-4"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="modalConfirmBtn" class="px-5 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50" data-key="confirm">Confirm</button>
+                <button id="modalCancelBtn" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50" data-key="cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Detail/Add Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('eventModal')">&times;</span>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4" id="eventModalTitle" data-key="addEvent">Add Event</h3>
+            <p class="text-gray-600 mb-4" data-key="dateLabel">Date: <span id="eventModalDate"></span></p>
+
+            <div class="space-y-4">
+                <div>
+                    <label for="eventTitleInput" class="block text-gray-700 font-medium mb-1" data-key="eventTitleLabel">Event Title:</label>
+                    <input type="text" id="eventTitleInput" placeholder="e.g., Fertilize Corn"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400" data-key="eventTitlePlaceholder">
+                </div>
+                <div>
+                    <label for="eventDescriptionInput" class="block text-gray-700 font-medium mb-1" data-key="eventDescriptionLabel">Description (Optional):</label>
+                    <textarea id="eventDescriptionInput" rows="3" placeholder="More details about the event"
+                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 resize-y" data-key="eventDescriptionPlaceholder"></textarea>
+                </div>
+                <div>
+                    <label for="eventRelatedCropSelect" class="block text-gray-700 font-medium mb-1" data-key="relatedCropPlanLabel">Related Crop Plan (Optional):</label>
+                    <select id="eventRelatedCropSelect"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400">
+                        <option value="" data-key="noneOption">-- None --</option>
+                        <!-- Crop plans will be loaded here dynamically -->
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button id="saveEventButton" class="px-5 py-2 btn-gradient text-white rounded-lg" data-key="saveEvent">Save Event</button>
+                <button id="cancelEventButton" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400" data-key="cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-emerald-500 to-green-600 shadow-md py-4 px-6 md:px-8 relative z-50 rounded-b-xl">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" class="text-white text-2xl font-bold tracking-wide">AgriDiag AI</a>
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="#diagnosis" class="text-white hover:text-emerald-100 transition duration-300 ease-in-out font-medium" data-key="diagnosis">Diagnosis</a>
+                <a href="#planning" class="text-white hover:text-emerald-100 transition duration-300 ease-in-out font-medium" data-key="cropPlanning">Crop Planning</a>
+                <a href="#calendar" class="text-white hover:text-emerald-100 transition duration-300 ease-in-out font-medium" data-key="calendar">Calendar</a>
+                <a href="#weather" class="text-white hover:text-emerald-100 transition duration-300 ease-in-out font-medium" data-key="weather">Weather</a>
+                <a href="#expenses" class="text-white hover:text-emerald-100 transition duration-300 ease-in-out font-medium" data-key="expenses">Expenses</a>
+                <a href="#yields" class="text-white hover:text-emerald-100 transition duration-300 ease-in-out font-medium" data-key="yields">Yields</a>
+                <a href="#planting-recommendations" class="text-white hover:text-emerald-100 transition duration-300 ease-in-out font-medium" data-key="plantingAI">Planting AI</a>
+                <a href="#history" class="text-white hover:text-emerald-100 transition duration-300 ease-in-out font-medium" data-key="history">History</a>
+                <a href="#about" class="text-white hover:text-emerald-100 transition duration-300 ease-in-out font-medium" data-key="about">About</a>
+                <a href="#about-developer" class="text-white hover:text-emerald-100 transition duration-300 ease-in-out font-medium" data-key="developer">Developer</a>
+                <a href="#contact" class="text-white hover:text-emerald-100 transition duration-300 ease-in-out font-medium" data-key="contact">Contact</a>
+                <select id="language-switcher-desktop" class="ml-4 p-2 rounded-lg bg-emerald-600 text-white border border-emerald-700 focus:ring-emerald-400 focus:border-emerald-400">
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                </select>
+            </nav>
+            <!-- Mobile Menu Button -->
+            <button id="menuButton" class="md:hidden text-white text-2xl focus:outline-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Menu -->
+    <nav id="mobileMenu" class="nav-menu fixed top-0 right-0 w-64 bg-white h-full shadow-lg p-6 z-50 md:hidden flex flex-col space-y-6 rounded-l-xl">
+        <button id="closeMenuButton" class="self-end text-gray-600 text-2xl focus:outline-none mb-4">
+            <i class="fas fa-times"></i>
+        </button>
+        <a href="#diagnosis" class="text-gray-800 hover:text-emerald-500 transition duration-300 ease-in-out text-lg font-medium" onclick="toggleMobileMenu()" data-key="diagnosis">Diagnosis</a>
+        <a href="#planning" class="text-gray-800 hover:text-emerald-500 transition duration-300 ease-in-out text-lg font-medium" onclick="toggleMobileMenu()" data-key="cropPlanning">Crop Planning</a>
+        <a href="#calendar" class="text-gray-800 hover:text-emerald-500 transition duration-300 ease-in-out text-lg font-medium" onclick="toggleMobileMenu()" data-key="calendar">Calendar</a>
+        <a href="#weather" class="text-gray-800 hover:text-emerald-500 transition duration-300 ease-in-out text-lg font-medium" onclick="toggleMobileMenu()" data-key="weather">Weather</a>
+        <a href="#expenses" class="text-gray-800 hover:text-emerald-500 transition duration-300 ease-in-out text-lg font-medium" onclick="toggleMobileMenu()" data-key="expenses">Expenses</a>
+        <a href="#yields" class="text-gray-800 hover:text-emerald-500 transition duration-300 ease-in-out text-lg font-medium" onclick="toggleMobileMenu()" data-key="yields">Yields</a>
+        <a href="#planting-recommendations" class="text-gray-800 hover:text-emerald-500 transition duration-300 ease-in-out text-lg font-medium" onclick="toggleMobileMenu()" data-key="plantingAI">Planting AI</a>
+        <a href="#history" class="text-gray-800 hover:text-emerald-500 transition duration-300 ease-in-out text-lg font-medium" onclick="toggleMobileMenu()" data-key="history">History</a>
+        <a href="#about" class="text-gray-800 hover:text-emerald-500 transition duration-300 ease-in-out text-lg font-medium" onclick="toggleMobileMenu()" data-key="about">About</a>
+        <a href="#about-developer" class="text-gray-800 hover:text-emerald-500 transition duration-300 ease-in-out text-lg font-medium" onclick="toggleMobileMenu()" data-key="developer">Developer</a>
+        <a href="#contact" class="text-gray-800 hover:text-emerald-500 transition duration-300 ease-in-out text-lg font-medium" onclick="toggleMobileMenu()" data-key="contact">Contact</a>
+        <select id="language-switcher-mobile" class="mt-6 p-2 rounded-lg bg-gray-100 text-gray-800 border border-gray-300 focus:ring-emerald-400 focus:border-emerald-400">
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+        </select>
+    </nav>
+    <div id="overlay" class="overlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-6 md:p-8 flex-grow">
+        <!-- AI Diagnosis Section -->
+        <section id="diagnosis" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="diagnosisTitle">AI-Powered Crop Diagnosis</h2>
+            <p class="text-lg text-gray-600 mb-8 text-center max-w-2xl mx-auto" data-key="diagnosisDescription">
+                Describe the symptoms you observe in your crops, or upload an image, and our AI will provide a potential diagnosis and recommendations.
+            </p>
+
+            <div class="space-y-6">
+                <!-- Crop Type Selection -->
+                <div>
+                    <label for="cropTypeSelect" class="block text-gray-700 text-lg font-medium mb-2" data-key="selectCropTypeLabel">Select Crop Type:</label>
+                    <select id="cropTypeSelect"
+                            class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800">
+                        <option value="" data-key="selectCropOption">-- Select a crop --</option>
+                        <option value="Corn" data-key="corn">Corn</option>
+                        <option value="Wheat" data-key="wheat">Wheat</option>
+                        <option value="Rice" data-key="rice">Rice</option>
+                        <option value="Soybean" data-key="soybean">Soybean</option>
+                        <option value="Tomato" data-key="tomato">Tomato</option>
+                        <option value="Potato" data-key="potato">Potato</option>
+                        <option value="Cotton" data-key="cotton">Cotton</option>
+                        <option value="Fruit Tree" data-key="fruitTree">Fruit Tree</option>
+                        <option value="Vegetable (Leafy)" data-key="leafyVegetable">Leafy Vegetable</option>
+                        <option value="Other" data-key="other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Symptom Severity Level -->
+                <div>
+                    <label for="severitySelect" class="block text-gray-700 text-lg font-medium mb-2" data-key="symptomSeverityLabel">Symptom Severity:</label>
+                    <select id="severitySelect"
+                            class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800">
+                        <option value="" data-key="selectSeverityOption">-- Select severity --</option>
+                        <option value="Mild" data-key="mild">Mild</option>
+                        <option value="Moderate" data-key="moderate">Moderate</option>
+                        <option value="Severe" data-key="severe">Severe</option>
+                        <option value="Critical" data-key="critical">Critical</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="symptomsInput" class="block text-gray-700 text-lg font-medium mb-2" data-key="describeSymptomsLabel">Describe Symptoms:</label>
+                    <textarea id="symptomsInput" rows="7"
+                              class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800 resize-y"
+                              data-key="symptomsPlaceholder" placeholder="e.g., 'Leaves are yellowing at the edges, stunted growth, some spots on the underside of leaves.'"></textarea>
+                </div>
+                <!-- Image Upload (Placeholder for client-side functionality) -->
+                <div>
+                    <label for="imageUpload" class="block text-gray-700 text-lg font-medium mb-2" data-key="uploadImageLabel">Upload Image (Optional):</label>
+                    <div class="flex items-center space-x-4">
+                        <input type="file" id="imageUpload" accept="image/*" class="hidden" onchange="displayFileName(this)">
+                        <button onclick="document.getElementById('imageUpload').click()"
+                                class="px-6 py-3 bg-blue-500 text-white rounded-xl shadow-md hover:bg-blue-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75" data-key="chooseFile">
+                            <i class="fas fa-upload mr-2"></i>Choose File
+                        </button>
+                        <span id="fileName" class="text-gray-600 text-sm italic" data-key="noFileChosen">No file chosen</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2" data-key="imageAnalysisDisclaimer">Currently, image analysis is a placeholder. Please describe symptoms for diagnosis.</p>
+                </div>
+
+                <div class="flex justify-center items-center space-x-4">
+                    <button id="diagnoseButton"
+                            class="btn-gradient px-8 py-4 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75 flex items-center justify-center">
+                        <span id="buttonText" data-key="getDiagnosis">Get Diagnosis</span>
+                        <div id="loader" class="loader ml-3"></div>
+                    </button>
+                    <button id="clearButton"
+                            class="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-xl shadow-md hover:bg-gray-300 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-75" data-key="clear">
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Diagnosis Result Area -->
+            <div id="diagnosisResult" class="mt-10 p-6 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-inner hidden">
+                <h3 class="text-2xl font-semibold text-emerald-800 mb-4" data-key="diagnosisResultTitle">Diagnosis Result:</h3>
+                <div id="resultContent" class="text-gray-700 leading-relaxed text-lg">
+                    <!-- AI generated content will be injected here -->
+                </div>
+                <!-- Copy to Clipboard Button -->
+                <div class="mt-6 text-center">
+                    <button id="copyDiagnosisButton"
+                            class="px-6 py-3 bg-indigo-500 text-white font-medium rounded-xl shadow-md hover:bg-indigo-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75" data-key="copyDiagnosis">
+                        <i class="fas fa-copy mr-2"></i>Copy Diagnosis
+                    </button>
+                </div>
+                <div class="mt-4 text-sm text-gray-600 italic" data-key="diagnosisDisclaimer">
+                    Disclaimer: This AI diagnosis is for informational purposes only and should not replace professional agricultural advice.
+                </div>
+            </div>
+        </section>
+
+        <!-- Crop Planning Section -->
+        <section id="planning" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="cropPlanningTitle">Crop Planning</h2>
+            <p class="text-lg text-gray-600 mb-8 text-center max-w-2xl mx-auto" data-key="cropPlanningDescription">
+                Plan your crop cycles here. Track planting, harvest, and important notes for each crop.
+            </p>
+
+            <div class="space-y-6 mb-8">
+                <div>
+                    <label for="planCropName" class="block text-gray-700 text-lg font-medium mb-2" data-key="cropNameLabel">Crop Name:</label>
+                    <input type="text" id="planCropName"
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800"
+                           data-key="cropNamePlaceholder" placeholder="e.g., Spring Corn, Winter Wheat">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="planPlantingDate" class="block text-gray-700 text-lg font-medium mb-2" data-key="plantingDateLabel">Planting Date:</label>
+                        <input type="date" id="planPlantingDate"
+                               class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800">
+                    </div>
+                    <div>
+                        <label for="planHarvestDate" class="block text-gray-700 text-lg font-medium mb-2" data-key="estimatedHarvestDateLabel">Estimated Harvest Date:</label>
+                        <input type="date" id="planHarvestDate"
+                               class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800">
+                    </div>
+                </div>
+                <div>
+                    <label for="planNotes" class="block text-gray-700 text-lg font-medium mb-2" data-key="notesLabel">Notes:</label>
+                    <textarea id="planNotes" rows="4"
+                              class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800 resize-y"
+                              data-key="notesPlaceholder" placeholder="e.g., Soil preparation, fertilizer schedule, expected yield."></textarea>
+                </div>
+                <div class="flex justify-center">
+                    <button id="addCropPlanButton"
+                            class="btn-gradient px-8 py-3 text-white font-semibold rounded-xl shadow-lg hover:bg-emerald-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75" data-key="addCropPlan">
+                        Add Crop Plan
+                    </button>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-semibold text-gray-800 mb-4 text-center" data-key="myCropPlansTitle">My Crop Plans</h3>
+            <div id="cropPlansList" class="space-y-6">
+                <!-- Crop plans will be dynamically loaded here -->
+                <p id="noCropPlansMessage" class="text-center text-gray-500 italic" data-key="noCropPlansMessage">No crop plans added yet.</p>
+            </div>
+            <div class="flex justify-center mt-8">
+                <button id="clearCropPlansButton"
+                        class="px-6 py-3 bg-red-500 text-white font-medium rounded-xl shadow-md hover:bg-red-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75" data-key="clearAllCropPlans">
+                    Clear All Crop Plans
+                </button>
+            </div>
+        </section>
+
+        <!-- Calendar Section -->
+        <section id="calendar" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="cropCalendarTitle">Crop Calendar</h2>
+            <p class="text-lg text-gray-600 mb-8 text-center max-w-2xl mx-auto" data-key="calendarDescription">
+                Schedule and view important dates and events for your crops. Click on a date to add an event.
+            </p>
+
+            <div class="flex justify-between items-center mb-6">
+                <button id="prevMonthButton" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300" data-key="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                <h3 id="currentMonthYear" class="text-2xl font-semibold text-gray-800"></h3>
+                <button id="nextMonthButton" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300" data-key="nextMonth"><i class="fas fa-chevron-right"></i></button>
+            </div>
+
+            <div id="calendarGrid" class="calendar-grid">
+                <!-- Calendar days will be generated here by JavaScript -->
+            </div>
+             <div class="flex justify-center mt-8">
+                <button id="clearCalendarEventsButton"
+                        class="px-6 py-3 bg-red-500 text-white font-medium rounded-xl shadow-md hover:bg-red-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75" data-key="clearAllCalendarEvents">
+                    Clear All Calendar Events
+                </button>
+            </div>
+        </section>
+
+        <!-- Weather Section -->
+        <section id="weather" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="localWeatherTitle">Local Weather</h2>
+            <p class="text-lg text-gray-600 mb-8 text-center max-w-2xl mx-auto" data-key="weatherDescription">
+                Get current weather conditions and a short forecast for your location.
+            </p>
+
+            <div class="space-y-6 mb-8">
+                <div>
+                    <label for="cityInput" class="block text-gray-700 text-lg font-medium mb-2" data-key="cityNameLabel">City Name:</label>
+                    <input type="text" id="cityInput"
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800"
+                           data-key="cityPlaceholder" placeholder="e.g., Accra">
+                </div>
+                <div>
+                    <label for="countryInput" class="block text-gray-700 text-lg font-medium mb-2" data-key="countryLabel">Country (Optional, for better accuracy):</label>
+                    <input type="text" id="countryInput"
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800"
+                           data-key="countryPlaceholder" placeholder="e.g., Ghana">
+                </div>
+                <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <button id="getWeatherButton"
+                            class="btn-gradient px-8 py-4 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75 flex items-center justify-center w-full sm:w-auto">
+                        <span id="weatherButtonText" data-key="getWeather">Get Weather</span>
+                        <div id="weatherLoader" class="loader ml-3"></div>
+                    </button>
+                    <!-- Removed Geolocation Weather Button -->
+                </div>
+            </div>
+
+            <div id="weatherResult" class="mt-10 p-6 bg-blue-50 border border-blue-200 rounded-2xl shadow-inner hidden">
+                <h3 class="text-2xl font-semibold text-blue-800 mb-4" data-key="currentWeatherIn">Current Weather in <span id="weatherLocation"></span>:</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg text-gray-700">
+                    <p><i class="fas fa-thermometer-half mr-2 text-blue-600"></i><span data-key="temperature">Temperature</span>: <span id="currentTemp"></span></p>
+                    <p><i class="fas fa-cloud mr-2 text-blue-600"></i><span data-key="conditions">Conditions</span>: <span id="currentConditions"></span></p>
+                    <p><i class="fas fa-water mr-2 text-blue-600"></i><span data-key="humidity">Humidity</span>: <span id="currentHumidity"></span></p>
+                    <p><i class="fas fa-wind mr-2 text-blue-600"></i><span data-key="windSpeed">Wind Speed</span>: <span id="currentWind"></span></p>
+                </div>
+                <div id="forecastSection" class="mt-6">
+                    <h4 class="text-xl font-semibold text-blue-800 mb-3" data-key="todaysForecast">Today's Forecast:</h4>
+                    <div id="dailyForecast" class="text-lg text-gray-700 space-y-2">
+                        <!-- Daily forecast will be inserted here -->
+                    </div>
+                </div>
+                <div class="mt-4 text-sm text-gray-600 italic" data-key="weatherDisclaimer">
+                    Weather data powered by Open-Meteo.
+                </div>
+            </div>
+            <div id="weatherError" class="mt-10 p-6 bg-red-50 border border-red-200 rounded-2xl shadow-inner hidden text-red-700">
+                <p data-key="weatherErrorText">Unable to retrieve weather data. Please check the location or try again later.</p>
+            </div>
+        </section>
+
+        <!-- Expense Tracking Section -->
+        <section id="expenses" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="expenseTrackingTitle">Expense Tracking</h2>
+            <p class="text-lg text-gray-600 mb-8 text-center max-w-2xl mx-auto" data-key="expenseTrackingDescription">
+                Record your agricultural expenses here to keep track of your spending.
+            </p>
+
+            <div class="space-y-6 mb-8">
+                <div>
+                    <label for="expenseAmount" class="block text-gray-700 text-lg font-medium mb-2" data-key="amountLabel">Amount ($):</label>
+                    <input type="number" id="expenseAmount" min="0" step="0.01"
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800"
+                           data-key="amountPlaceholder" placeholder="e.g., 150.75">
+                </div>
+                <div>
+                    <label for="expenseCategory" class="block text-gray-700 text-lg font-medium mb-2" data-key="categoryLabel">Category:</label>
+                    <select id="expenseCategory"
+                            class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800">
+                        <option value="" data-key="selectCategoryOption">-- Select a category --</option>
+                        <option value="Seeds" data-key="seeds">Seeds</option>
+                        <option value="Fertilizer" data-key="fertilizer">Fertilizer</option>
+                        <option value="Pesticides" data-key="pesticides">Pesticides</option>
+                        <option value="Labor" data-key="labor">Labor</option>
+                        <option value="Equipment Maintenance" data-key="equipmentMaintenance">Equipment Maintenance</option>
+                        <option value="Fuel" data-key="fuel">Fuel</option>
+                        <option value="Water/Irrigation" data-key="waterIrrigation">Water/Irrigation</option>
+                        <option value="Land Lease" data-key="landLease">Land Lease</option>
+                        <option value="Other" data-key="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="expenseDate" class="block text-gray-700 text-lg font-medium mb-2" data-key="dateLabel">Date:</label>
+                    <input type="date" id="expenseDate"
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800">
+                </div>
+                <div>
+                    <label for="expenseNotes" class="block text-gray-700 text-lg font-medium mb-2" data-key="notesLabel">Notes (Optional):</label>
+                    <textarea id="expenseNotes" rows="3"
+                              class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800 resize-y"
+                              data-key="expenseNotesPlaceholder" placeholder="Add any relevant details about this expense."></textarea>
+                </div>
+                <div class="flex justify-center">
+                    <button id="addExpenseButton"
+                            class="btn-gradient px-8 py-3 text-white font-semibold rounded-xl shadow-lg hover:bg-emerald-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75" data-key="addExpense">
+                        Add Expense
+                    </button>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-semibold text-gray-800 mb-4 text-center" data-key="myExpensesTitle">My Expenses</h3>
+            <div id="expensesList" class="space-y-6">
+                <!-- Expense items will be dynamically loaded here -->
+                <p id="noExpensesMessage" class="text-center text-gray-500 italic" data-key="noExpensesMessage">No expenses recorded yet.</p>
+            </div>
+            <div class="flex justify-center mt-8">
+                <button id="clearExpensesButton"
+                        class="px-6 py-3 bg-red-500 text-white font-medium rounded-xl shadow-md hover:bg-red-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75" data-key="clearAllExpenses">
+                    Clear All Expenses
+                </button>
+            </div>
+        </section>
+
+        <!-- Yield Tracking Section -->
+        <section id="yields" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="yieldTrackingTitle">Yield Tracking</h2>
+            <p class="text-lg text-gray-600 mb-8 text-center max-w-2xl mx-auto" data-key="yieldTrackingDescription">
+                Record your harvest yields to monitor productivity.
+            </p>
+
+            <div class="space-y-6 mb-8">
+                <div>
+                    <label for="yieldAmount" class="block text-gray-700 text-lg font-medium mb-2" data-key="amountLabel">Amount:</label>
+                    <input type="number" id="yieldAmount" min="0" step="0.01"
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800"
+                           data-key="yieldAmountPlaceholder" placeholder="e.g., 5000">
+                </div>
+                <div>
+                    <label for="yieldUnit" class="block text-gray-700 text-lg font-medium mb-2" data-key="unitLabel">Unit:</label>
+                    <select id="yieldUnit"
+                            class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800">
+                        <option value="" data-key="selectUnitOption">-- Select unit --</option>
+                        <option value="kg" data-key="kg">Kilograms (kg)</option>
+                        <option value="lbs" data-key="lbs">Pounds (lbs)</option>
+                        <option value="bushels" data-key="bushels">Bushels</option>
+                        <option value="tons" data-key="tons">Tons</option>
+                        <option value="boxes" data-key="boxes">Boxes</option>
+                        <option value="other" data-key="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="yieldCropSelect" class="block text-gray-700 text-lg font-medium mb-2" data-key="relatedCropPlanLabel">Related Crop Plan:</label>
+                    <select id="yieldCropSelect"
+                            class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800">
+                        <option value="" data-key="selectCropPlanOption">-- Select a crop plan --</option>
+                        <!-- Crop plans will be loaded dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label for="yieldDate" class="block text-gray-700 text-lg font-medium mb-2" data-key="harvestDateLabel">Harvest Date:</label>
+                    <input type="date" id="yieldDate"
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800">
+                </div>
+                <div>
+                    <label for="yieldNotes" class="block text-gray-700 text-lg font-medium mb-2" data-key="notesLabel">Notes (Optional):</label>
+                    <textarea id="yieldNotes" rows="3"
+                              class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800 resize-y"
+                              data-key="yieldNotesPlaceholder" placeholder="Add any relevant details about this yield, e.g., 'Good quality, low spoilage.'"></textarea>
+                </div>
+                <div class="flex justify-center">
+                    <button id="addYieldButton"
+                            class="btn-gradient px-8 py-3 text-white font-semibold rounded-xl shadow-lg hover:bg-emerald-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75" data-key="addYield">
+                        Add Yield
+                    </button>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-semibold text-gray-800 mb-4 text-center" data-key="myYieldRecordsTitle">My Yield Records</h3>
+            <div id="yieldsList" class="space-y-6">
+                <!-- Yield items will be dynamically loaded here -->
+                <p id="noYieldsMessage" class="text-center text-gray-500 italic" data-key="noYieldsMessage">No yield records yet.</p>
+            </div>
+            <div class="flex justify-center mt-8">
+                <button id="clearYieldsButton"
+                        class="px-6 py-3 bg-red-500 text-white font-medium rounded-xl shadow-md hover:bg-red-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75" data-key="clearAllYields">
+                    Clear All Yields
+                </button>
+            </div>
+        </section>
+
+        <!-- Planting Recommendations AI Section -->
+        <section id="planting-recommendations" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="aiPlantingRecommendationsTitle">AI Planting Recommendations</h2>
+            <p class="text-lg text-gray-600 mb-8 text-center max-w-2xl mx-auto" data-key="aiPlantingRecommendationsDescription">
+                Get AI-powered recommendations for optimal planting based on your farm's conditions.
+            </p>
+
+            <div class="space-y-6">
+                <!-- Soil Data Inputs -->
+                <h3 class="text-xl font-semibold text-gray-700 mb-4" data-key="soilDataTitle">Soil Data:</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                        <label for="soilNitrogen" class="block text-gray-700 text-lg font-medium mb-2" data-key="nitrogenLabel">Nitrogen (N) ppm:</label>
+                        <input type="number" id="soilNitrogen" min="0" step="0.1"
+                               class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800"
+                               data-key="nitrogenPlaceholder" placeholder="e.g., 50">
+                    </div>
+                    <div>
+                        <label for="soilPhosphorus" class="block text-gray-700 text-lg font-medium mb-2" data-key="phosphorusLabel">Phosphorus (P) ppm:</label>
+                        <input type="number" id="soilPhosphorus" min="0" step="0.1"
+                               class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800"
+                               data-key="phosphorusPlaceholder" placeholder="e.g., 20">
+                    </div>
+                    <div>
+                        <label for="soilPotassium" class="block text-gray-700 text-lg font-medium mb-2" data-key="potassiumLabel">Potassium (K) ppm:</label>
+                        <input type="number" id="soilPotassium" min="0" step="0.1"
+                               class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800"
+                               data-key="potassiumPlaceholder" placeholder="e.g., 100">
+                    </div>
+                    <div>
+                        <label for="phLevel" class="block text-gray-700 text-lg font-medium mb-2" data-key="phLevelLabel">pH Level:</label>
+                        <input type="number" id="phLevel" min="0" max="14" step="0.1"
+                               class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800"
+                               data-key="phLevelPlaceholder" placeholder="e.g., 6.5">
+                    </div>
+                </div>
+
+                <!-- Other Factors -->
+                <h3 class="text-xl font-semibold text-gray-700 mt-8 mb-4" data-key="otherFactorsTitle">Other Factors:</h3>
+                <div>
+                    <label for="previousCropYieldNotes" class="block text-gray-700 text-lg font-medium mb-2" data-key="previousCropYieldNotesLabel">Previous Season's Crop Yield (Notes):</label>
+                    <textarea id="previousCropYieldNotes" rows="3"
+                              class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800 resize-y"
+                              data-key="previousCropYieldNotesPlaceholder" placeholder="e.g., 'Corn yield was moderate, about 150 bushels/acre, slightly below average due to early drought.'"></textarea>
+                </div>
+                <div>
+                    <label for="pestIssuesNotes" class="block text-gray-700 text-lg font-medium mb-2" data-key="pestIssuesNotesLabel">Current/Historical Pest/Disease Issues (Notes):</label>
+                    <textarea id="pestIssuesNotes" rows="3"
+                              class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800 resize-y"
+                              data-key="pestIssuesNotesPlaceholder" placeholder="e.g., 'Had issues with corn earworm and some fungal spots last year.'"></textarea>
+                </div>
+                <div>
+                    <label for="lastSeasonWeatherNotes" class="block text-gray-700 text-lg font-medium mb-2" data-key="lastSeasonWeatherNotesLabel">Last Season's Weather Patterns (Notes):</label>
+                    <textarea id="lastSeasonWeatherNotes" rows="3"
+                              class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition duration-200 text-gray-800 resize-y"
+                              data-key="lastSeasonWeatherNotesPlaceholder" placeholder="e.g., 'Dry spring, hot and humid summer with scattered heavy rains in August.'"></textarea>
+                </div>
+
+                <div class="flex justify-center items-center space-x-4 mt-8">
+                    <button id="getPlantingRecommendationButton"
+                            class="btn-gradient px-8 py-4 text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75 flex items-center justify-center">
+                        <span id="plantingButtonText" data-key="getRecommendations">Get Recommendations</span>
+                        <div id="plantingLoader" class="loader ml-3"></div>
+                    </button>
+                    <button id="clearPlantingInputsButton"
+                            class="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-xl shadow-md hover:bg-gray-300 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-75" data-key="clearInputs">
+                        Clear Inputs
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recommendation Result Area -->
+            <div id="plantingRecommendationResult" class="mt-10 p-6 bg-blue-50 border border-blue-200 rounded-2xl shadow-inner hidden">
+                <h3 class="text-2xl font-semibold text-blue-800 mb-4" data-key="aiPlantingRecommendationsTitle">AI Planting Recommendations:</h3>
+                <div id="plantingResultContent" class="text-gray-700 leading-relaxed text-lg">
+                    <!-- AI generated content will be injected here -->
+                </div>
+                <div class="mt-4 text-sm text-gray-600 italic" data-key="plantingDisclaimer">
+                    Disclaimer: These recommendations are AI-generated based on provided inputs and should be cross-referenced with local agricultural experts and conditions.
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Diagnosis History Section -->
+        <section id="history" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="diagnosisHistoryTitle">Diagnosis History</h2>
+            <p class="text-lg text-gray-600 mb-8 text-center max-w-2xl mx-auto" data-key="diagnosisHistoryDescription">
+                Review your past diagnoses here. Data is stored offline in your browser.
+            </p>
+            <div id="historyList" class="space-y-6">
+                <!-- History items will be dynamically loaded here -->
+                <p id="noHistoryMessage" class="text-center text-gray-500 italic" data-key="noPastDiagnosesMessage">No past diagnoses found.</p>
+            </div>
+            <div class="flex justify-center mt-8">
+                 <button id="clearHistoryButton"
+                            class="px-6 py-3 bg-red-500 text-white font-medium rounded-xl shadow-md hover:bg-red-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75" data-key="clearHistory">
+                        Clear History
+                    </button>
+            </div>
+        </section>
+
+        <!-- About Section (Placeholder) -->
+        <section id="about" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="aboutAgriDiagAITitle">About AgriDiag AI</h2>
+            <div class="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto space-y-4">
+                <p data-key="aboutAgriDiagAIP1">AgriDiag AI is designed to assist farmers and agricultural enthusiasts in quickly identifying potential issues with their crops. By leveraging the power of artificial intelligence, we aim to provide initial diagnoses and general recommendations based on observed symptoms.</p>
+                <p data-key="aboutAgriDiagAIP2">Our goal is to be a helpful tool for early detection, enabling timely interventions and promoting healthier crops. Please remember that this tool provides informational guidance and should be complemented by professional agricultural consultation for precise solutions.</p>
+                
+            </div>
+        </section>
+
+         <!-- About the Developer Section -->
+        <section id="about-developer" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200 text-center">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">About the Developer</h2>
+            <div class="max-w-2xl mx-auto flex flex-col items-center space-y-6">
+                 <img src="PSX_20220620_171736.jpg" alt="Profile Photo" class="w-20 h-auto rounded-xl shadow-md">
+                <h3 class="text-2xl font-semibold text-gray-800">Ako Abanda Bonaventure Nyenty</h3>
+                <p class="text-lg text-gray-700 leading-relaxed">
+                    Ako Abanda Bonaventure Nyenty is the innovative mind behind AgriDiag AI. With a passion for agriculture and technology, Ako developed this application to empower farmers with accessible and intelligent tools for crop health management.
+                </p>
+                <div class="text-lg text-gray-700 space-y-2">
+                    <p><strong>Contact:</strong></p>
+                    <p><i class="fas fa-envelope mr-2 text-emerald-600"></i>Email: <a href="mailto:nyentyako@gmail.com" class="text-emerald-600 hover:underline">nyentyako@gmail.com</a></p>
+                    <p><i class="fab fa-linkedin mr-2 text-blue-700"></i>LinkedIn: <a href="https://www.linkedin.com/in/ako-abanda-bonaventure-nyenty/" target="_blank" class="text-blue-700 hover:underline">Connect on LinkedIn</a></p>
+                </div>
+                
+            </div>
+        </section>
+
+        <!-- Contact Section (Placeholder) -->
+        <section id="contact" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="contactUsTitle">Contact Us</h2>
+            <div class="text-lg text-gray-700 leading-relaxed max-w-xl mx-auto space-y-4">
+                <p data-key="contactUsP1">Have questions, feedback, or need support? We're here to help!</p>
+                <ul class="list-disc list-inside space-y-2">
+                    <li><strong data-key="emailLabel">Email:</strong> <a href="mailto:imaginarytouchstudios@gmail.com" class="text-emerald-600 hover:underline">imaginarytouchstudios@gmail.com</a></li>
+                    <li><strong data-key="phoneLabel">Phone:</strong> +233271832772</li>
+                    <li><strong data-key="addressLabel">Address:</strong> Imaginary Touch Studio, Nii Osae Ntiful Ave., GD-168-1318</li>
+                     <li><strong data-key="donationLabel">Donations:</strong> Use this Bitcoin address for your Donations : 1Pbt3k8YBdFHXZeJe5kxWj5ksbSyRpF5qw </li>
+                </ul>
+                <p data-key="contactUsP2">Feel free to reach out to us for any agricultural queries or technical assistance with the app.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Back to Top Button -->
+    <button id="backToTopBtn"
+            class="fixed bottom-8 right-8 bg-emerald-600 text-white p-4 rounded-full shadow-lg hover:bg-emerald-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-75 z-50 animate-bounce" data-key="backToTop">
+        <i class="fas fa-arrow-up text-xl"></i>
+    </button>
+
+    <footer class="bg-gray-800 text-white py-6 mt-auto rounded-t-xl">
+        <div class="container mx-auto text-center text-sm">
+            <p>&copy; 2024 AgriDiag AI. All rights reserved.</p>
+            <p class="mt-2">Disclaimer: This tool is for informational purposes only. Consult with agricultural experts for precise advice.</p>
+            <p class="mt-2">
+                <a href="https://www.termsfeed.com/live/00cb7a0d-d1ea-4787-a7b8-fea62a4a339a" target="_blank" class="text-emerald-400 hover:underline">Privacy Notice</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Global variables for Firebase configuration, though not directly used for storage in this pure client-side app
+        // These are typically provided by the Canvas environment for Firestore/Auth setup.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
+
+        // --- UI Elements ---
+        const menuButton = document.getElementById('menuButton');
+        const closeMenuButton = document.getElementById('closeMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const overlay = document.getElementById('overlay');
+        const cropTypeSelect = document.getElementById('cropTypeSelect');
+        const severitySelect = document.getElementById('severitySelect');
+        const symptomsInput = document.getElementById('symptomsInput');
+        const imageUpload = document.getElementById('imageUpload');
+        const fileNameSpan = document.getElementById('fileName');
+        const diagnoseButton = document.getElementById('diagnoseButton');
+        const clearButton = document.getElementById('clearButton');
+        const diagnosisResultDiv = document.getElementById('diagnosisResult');
+        const resultContentDiv = document.getElementById('resultContent');
+        const copyDiagnosisButton = document.getElementById('copyDiagnosisButton');
+        const loader = document.getElementById('loader');
+        const buttonText = document.getElementById('buttonText');
+        const historyList = document.getElementById('historyList');
+        const noHistoryMessage = document.getElementById('noHistoryMessage');
+        const clearHistoryButton = document.getElementById('clearHistoryButton');
+        const toastMessage = document.getElementById('toastMessage');
+        const alertModal = document.getElementById('alertModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+        // Language Switchers
+        const languageSwitcherDesktop = document.getElementById('language-switcher-desktop');
+        const languageSwitcherMobile = document.getElementById('language-switcher-mobile');
+        let currentLanguage = 'en'; // Default language
+
+        // Translations object
+        const translations = {
+            en: {
+                // Navigation
+                diagnosis: 'Diagnosis',
+                cropPlanning: 'Crop Planning',
+                calendar: 'Calendar',
+                weather: 'Weather',
+                expenses: 'Expenses',
+                yields: 'Yields',
+                plantingAI: 'Planting AI',
+                history: 'History',
+                about: 'About',
+                developer: 'Developer',
+                contact: 'Contact',
+
+                // Modals
+                confirm: 'Confirm',
+                cancel: 'Cancel',
+                addEvent: 'Add Event',
+                dateLabel: 'Date:',
+                eventTitleLabel: 'Event Title:',
+                eventTitlePlaceholder: 'e.g., Fertilize Corn',
+                eventDescriptionLabel: 'Description (Optional):',
+                eventDescriptionPlaceholder: 'More details about the event',
+                relatedCropPlanLabel: 'Related Crop Plan (Optional):',
+                noneOption: '-- None --',
+                saveEvent: 'Save Event',
+                
+                // Diagnosis Section
+                diagnosisTitle: 'AI-Powered Crop Diagnosis',
+                diagnosisDescription: 'Describe the symptoms you observe in your crops, or upload an image, and our AI will provide a potential diagnosis and recommendations.',
+                selectCropTypeLabel: 'Select Crop Type:',
+                selectCropOption: '-- Select a crop --',
+                corn: 'Corn',
+                wheat: 'Wheat',
+                rice: 'Rice',
+                soybean: 'Soybean',
+                tomato: 'Tomato',
+                potato: 'Potato',
+                cotton: 'Cotton',
+                fruitTree: 'Fruit Tree',
+                leafyVegetable: 'Leafy Vegetable',
+                other: 'Other',
+                symptomSeverityLabel: 'Symptom Severity:',
+                selectSeverityOption: '-- Select severity --',
+                mild: 'Mild',
+                moderate: 'Moderate',
+                severe: 'Severe',
+                critical: 'Critical',
+                describeSymptomsLabel: 'Describe Symptoms:',
+                symptomsPlaceholder: 'e.g., \'Leaves are yellowing at the edges, stunted growth, some spots on the underside of leaves.\'',
+                uploadImageLabel: 'Upload Image (Optional):',
+                chooseFile: 'Choose File',
+                noFileChosen: 'No file chosen',
+                imageAnalysisDisclaimer: 'Currently, image analysis is a placeholder. Please describe symptoms for diagnosis.',
+                getDiagnosis: 'Get Diagnosis',
+                clear: 'Clear',
+                diagnosisResultTitle: 'Diagnosis Result:',
+                copyDiagnosis: 'Copy Diagnosis',
+                diagnosisDisclaimer: 'Disclaimer: This AI diagnosis is for informational purposes only and should not replace professional agricultural advice.',
+                
+                // Diagnosis History dynamic labels
+                cropType: 'Crop Type',
+                symptomsProvided: 'Symptoms Provided',
+                noSymptomsProvided: 'No symptoms provided.',
+                aiDiagnosis: 'AI Diagnosis',
+                symptoms: 'Symptoms',
+                diagnosis: 'Diagnosis',
+                notSpecified: 'Not Specified',
+
+
+                // Crop Planning Section
+                cropPlanningTitle: 'Crop Planning',
+                cropPlanningDescription: 'Plan your crop cycles here. Track planting, harvest, and important notes for each crop.',
+                cropNameLabel: 'Crop Name:',
+                cropNamePlaceholder: 'e.g., Spring Corn, Winter Wheat',
+                plantingDateLabel: 'Planting Date:',
+                estimatedHarvestDateLabel: 'Estimated Harvest Date:',
+                notesLabel: 'Notes:',
+                notesPlaceholder: 'e.g., Soil preparation, fertilizer schedule, expected yield.',
+                addCropPlan: 'Add Crop Plan',
+                myCropPlansTitle: 'My Crop Plans',
+                noCropPlansMessage: 'No crop plans added yet.',
+                clearAllCropPlans: 'Clear All Crop Plans',
+                noNotes: 'No notes.',
+
+                // Calendar Section
+                cropCalendarTitle: 'Crop Calendar',
+                calendarDescription: 'Schedule and view important dates and events for your crops. Click on a date to add an event.',
+                prevMonth: 'Previous Month',
+                nextMonth: 'Next Month',
+                clearAllCalendarEvents: 'Clear All Calendar Events',
+
+                // Weather Section
+                localWeatherTitle: 'Local Weather',
+                weatherDescription: 'Get current weather conditions and a short forecast for your location.',
+                cityNameLabel: 'City Name:',
+                cityPlaceholder: 'e.g., Accra',
+                countryLabel: 'Country (Optional, for better accuracy):',
+                countryPlaceholder: 'e.g., Ghana',
+                getWeather: 'Get Weather',
+                currentWeatherIn: 'Current Weather in',
+                temperature: 'Temperature',
+                conditions: 'Conditions',
+                humidity: 'Humidity',
+                windSpeed: 'Wind Speed',
+                todaysForecast: 'Today\'s Forecast:',
+                maxTemp: 'Max Temp', // New for weather
+                minTemp: 'Min Temp', // New for weather
+                precipitation: 'Precipitation', // New for weather
+                summary: 'Summary', // New for weather
+                weatherDisclaimer: 'Weather data powered by Open-Meteo.',
+                weatherErrorText: 'Unable to retrieve weather data. Please check the location or try again later.',
+
+                // Expense Tracking Section
+                expenseTrackingTitle: 'Expense Tracking',
+                expenseTrackingDescription: 'Record your agricultural expenses here to keep track of your spending.',
+                amountLabel: 'Amount ($):',
+                amountPlaceholder: 'e.g., 150.75',
+                categoryLabel: 'Category:',
+                selectCategoryOption: '-- Select a category --',
+                seeds: 'Seeds',
+                fertilizer: 'Fertilizer',
+                pesticides: 'Pesticides',
+                labor: 'Labor',
+                equipmentMaintenance: 'Equipment Maintenance',
+                fuel: 'Fuel',
+                waterIrrigation: 'Water/Irrigation',
+                landLease: 'Land Lease',
+                expenseNotesPlaceholder: 'Add any relevant details about this expense.',
+                addExpense: 'Add Expense',
+                myExpensesTitle: 'My Expenses',
+                noExpensesMessage: 'No expenses recorded yet.',
+                clearAllExpenses: 'Clear All Expenses',
+
+                // Yield Tracking Section
+                yieldTrackingTitle: 'Yield Tracking',
+                yieldTrackingDescription: 'Record your harvest yields to monitor productivity.',
+                yieldAmountPlaceholder: 'e.g., 5000',
+                unitLabel: 'Unit:',
+                selectUnitOption: '-- Select unit --',
+                kg: 'Kilograms (kg)',
+                lbs: 'Pounds (lbs)',
+                bushels: 'Bushels',
+                tons: 'Tons',
+                boxes: 'Boxes',
+                addYield: 'Add Yield',
+                myYieldRecordsTitle: 'My Yield Records',
+                noYieldsMessage: 'No yield records yet.',
+                clearAllYields: 'Clear All Yields',
+                harvestDateLabel: 'Harvest Date:',
+                yieldNotesPlaceholder: 'Add any relevant details about this yield, e.g., \'Good quality, low spoilage.\'',
+                selectCropPlanOption: '-- Select a crop plan --',
+                cropPlan: 'Crop Plan',
+
+
+                // Planting Recommendations AI Section
+                aiPlantingRecommendationsTitle: 'AI Planting Recommendations',
+                aiPlantingRecommendationsDescription: 'Get AI-powered recommendations for optimal planting based on your farm\'s conditions.',
+                soilDataTitle: 'Soil Data:',
+                nitrogenLabel: 'Nitrogen (N) ppm:',
+                nitrogenPlaceholder: 'e.g., 50',
+                phosphorusLabel: 'Phosphorus (P) ppm:',
+                phosphorusPlaceholder: 'e.g., 20',
+                potassiumLabel: 'Potassium (K) ppm:',
+                potassiumPlaceholder: 'e.g., 100',
+                phLevelLabel: 'pH Level:',
+                phLevelPlaceholder: 'e.g., 6.5',
+                otherFactorsTitle: 'Other Factors:',
+                previousCropYieldNotesLabel: 'Previous Season\'s Crop Yield (Notes):',
+                previousCropYieldNotesPlaceholder: 'e.g., \'Corn yield was moderate, about 150 bushels/acre, slightly below average due to early drought.\'',
+                pestIssuesNotesLabel: 'Current/Historical Pest/Disease Issues (Notes):',
+                pestIssuesNotesPlaceholder: 'e.g., \'Had issues with corn earworm and some fungal spots last year.\'',
+                lastSeasonWeatherNotesLabel: 'Last Season\'s Weather Patterns (Notes):',
+                lastSeasonWeatherNotesPlaceholder: 'e.g., \'Dry spring, hot and humid summer with scattered heavy rains in August.\'',
+                getRecommendations: 'Get Recommendations',
+                clearInputs: 'Clear Inputs',
+                plantingDisclaimer: 'Disclaimer: These recommendations are AI-generated based on provided inputs and should be cross-referenced with local agricultural experts and conditions.',
+            
+                // Diagnosis History
+                diagnosisHistoryTitle: 'Diagnosis History',
+                diagnosisHistoryDescription: 'Review your past diagnoses here. Data is stored offline in your browser.',
+                noPastDiagnosesMessage: 'No past diagnoses found.',
+                clearHistory: 'Clear History',
+
+                // About
+                aboutAgriDiagAITitle: 'About AgriDiag AI',
+                aboutAgriDiagAIP1: 'AgriDiag AI is designed to assist farmers and agricultural enthusiasts in quickly identifying potential issues with their crops. By leveraging the power of artificial intelligence, we aim to provide initial diagnoses and general recommendations based on observed symptoms.',
+                aboutAgriDiagAIP2: 'Our goal is to be a helpful tool for early detection, enabling timely interventions and promoting healthier crops. Please remember that this tool provides informational guidance and should be complemented by professional agricultural consultation for precise solutions.',
+                aboutAgriDiagAIP3: 'Built with modern web technologies (HTML, CSS, JavaScript) and utilizing browser-based offline storage (IndexedDB) for your convenience.',
+
+                // About Developer
+                aboutDeveloperTitle: 'About the Developer',
+                developerName: 'Ako Abanda Bonaventure Nyenty',
+                developerBio: 'Ako Abanda Bonaventure Nyenty is the innovative mind behind AgriDiag AI. With a passion for agriculture and technology, Ako developed this application to empower farmers with accessible and intelligent tools for crop health management.',
+                contactLabel: 'Contact:',
+                emailLabel: 'Email',
+                linkedinLabel: 'LinkedIn',
+                developerEmailDisclaimer: 'Note: The email provided is a placeholder. For direct professional contact, please use the LinkedIn profile.',
+
+                // Contact
+                contactUsTitle: 'Contact Us',
+                contactUsP1: 'Have questions, feedback, or need support? We\'re here to help!',
+                phoneLabel: 'Phone:',
+                addressLabel: 'Address:',
+                contactUsP2: 'Feel free to reach out to us for any agricultural queries or technical assistance with the app.',
+
+                // Footer
+                copyright: '&copy; 2024 AgriDiag AI. All rights reserved.',
+                footerDisclaimer: 'Disclaimer: This tool is for informational purposes only. Consult with agricultural experts for precise advice.',
+                privacyNotice: 'Privacy Notice',
+                backToTop: 'Back to Top',
+                
+                // Toast Messages (handled directly in JS for now as they are dynamic)
+                // 'Image selected (for display purposes only).',
+                // 'Error opening database.',
+                // 'Crop Name and Planting Date are required for a crop plan.',
+                // 'Crop plan added successfully!',
+                // 'Error saving crop plan.',
+                // 'All crop plans cleared.',
+                // 'Clear crop plans cancelled.',
+                // 'Event title is required.',
+                // 'No date selected for event.',
+                // 'Event saved!',
+                // 'Error saving event.',
+                // 'All calendar events cleared.',
+                // 'Clear calendar events cancelled.',
+                // 'Unable to retrieve weather data. Please check the location or try again later.',
+                // 'Failed to get weather data.',
+                // 'Weather data powered by Open-Meteo.',
+                // 'Unable to retrieve weather data. Please check the location or try again later.',
+                // 'Please enter a valid expense amount.',
+                // 'Please select an expense category.',
+                // 'Please select an expense date.',
+                // 'Expense added successfully!',
+                // 'Error adding expense.',
+                // 'All expense records cleared.',
+                // 'Clear expenses cancelled.',
+                // 'Please enter a valid yield amount.',
+                // 'Please select a unit for the yield.',
+                // 'Please select a related crop plan.',
+                // 'Please select a harvest date.',
+                // 'Yield record added successfully!',
+                // 'Error saving yield record.',
+                // 'All yield records cleared.',
+                // 'Clear yield records cancelled.',
+                // 'Please enter some information (soil data, yield notes, pest issues, or weather) for recommendations.',
+                // 'AI Planting Recommendations require an internet connection.',
+                // 'Planting recommendations generated!',
+                // 'Could not get planting recommendations. Please try again.',
+                // 'An error occurred during recommendation generation. Please check your internet connection and try again.',
+                // 'An error occurred. Please try again.',
+                // 'Planting recommendation inputs cleared.',
+            },
+            fr: {
+                // Navigation
+                diagnosis: 'Diagnostic',
+                cropPlanning: 'Planification des Cultures',
+                calendar: 'Calendrier',
+                weather: 'Météo',
+                expenses: 'Dépenses',
+                yields: 'Rendements',
+                plantingAI: 'IA de Plantation',
+                history: 'Historique',
+                about: 'À Propos',
+                developer: 'Développeur',
+                contact: 'Contact',
+
+                // Modals
+                confirm: 'Confirmer',
+                cancel: 'Annuler',
+                addEvent: 'Ajouter un événement',
+                dateLabel: 'Date :',
+                eventTitleLabel: 'Titre de l\'événement :',
+                eventTitlePlaceholder: 'Ex: Fertiliser le maïs',
+                eventDescriptionLabel: 'Description (Optionnel) :',
+                eventDescriptionPlaceholder: 'Plus de détails sur l\'événement',
+                relatedCropPlanLabel: 'Plan de Culture Associé (Optionnel) :',
+                noneOption: '-- Aucun --',
+                saveEvent: 'Enregistrer l\'événement',
+
+                // Diagnosis Section
+                diagnosisTitle: 'Diagnostic de Culture par IA',
+                diagnosisDescription: 'Décrivez les symptômes que vous observez sur vos cultures, ou téléchargez une image, et notre IA vous fournira un diagnostic potentiel et des recommandations.',
+                selectCropTypeLabel: 'Sélectionnez le type de culture :',
+                selectCropOption: '-- Sélectionnez une culture --',
+                corn: 'Maïs',
+                wheat: 'Blé',
+                rice: 'Riz',
+                soybean: 'Soja',
+                tomato: 'Tomate',
+                potato: 'Pomme de terre',
+                cotton: 'Coton',
+                fruitTree: 'Arbre fruitier',
+                leafyVegetable: 'Légume à feuilles',
+                other: 'Autre',
+                symptomSeverityLabel: 'Gravité des symptômes :',
+                selectSeverityOption: '-- Sélectionnez la gravité --',
+                mild: 'Léger',
+                moderate: 'Modéré',
+                severe: 'Sévère',
+                critical: 'Critique',
+                describeSymptomsLabel: 'Décrivez les symptômes :',
+                symptomsPlaceholder: 'Ex: \'Les feuilles jaunissent sur les bords, croissance ralentie, quelques taches sur le dessous des feuilles.\'',
+                uploadImageLabel: 'Télécharger une image (Optionnel) :',
+                chooseFile: 'Choisir un fichier',
+                noFileChosen: 'Aucun fichier choisi',
+                imageAnalysisDisclaimer: 'Actuellement, l\'analyse d\'images est un espace réservé. Veuillez décrire les symptômes pour le diagnostic.',
+                getDiagnosis: 'Obtenir le diagnostic',
+                clear: 'Effacer',
+                diagnosisResultTitle: 'Résultat du diagnostic :',
+                copyDiagnosis: 'Copier le diagnostic',
+                diagnosisDisclaimer: 'Avertissement : Ce diagnostic IA est à titre informatif uniquement et ne doit pas remplacer les conseils agricoles professionnels.',
+
+                // Diagnosis History dynamic labels
+                cropType: 'Type de culture',
+                symptomsProvided: 'Symptômes fournis',
+                noSymptomsProvided: 'Aucun symptôme fourni.',
+                aiDiagnosis: 'Diagnostic IA',
+                symptoms: 'Symptômes',
+                diagnosis: 'Diagnostic',
+                notSpecified: 'Non Spécifié',
+
+                // Crop Planning Section
+                cropPlanningTitle: 'Planification des Cultures',
+                cropPlanningDescription: 'Planifiez vos cycles de culture ici. Suivez la plantation, la récolte et les notes importantes pour chaque culture.',
+                cropNameLabel: 'Nom de la culture :',
+                cropNamePlaceholder: 'Ex: Maïs de printemps, Blé d\'hiver',
+                plantingDateLabel: 'Date de plantation :',
+                estimatedHarvestDateLabel: 'Date de récolte estimée :',
+                notesLabel: 'Notes :',
+                notesPlaceholder: 'Ex: Préparation du sol, calendrier des engrais, rendement attendu.',
+                addCropPlan: 'Ajouter un plan de culture',
+                myCropPlansTitle: 'Mes plans de culture',
+                noCropPlansMessage: 'Aucun plan de culture ajouté pour l\'instant.',
+                clearAllCropPlans: 'Effacer tous les plans de culture',
+                noNotes: 'Aucune note.',
+
+                // Calendar Section
+                cropCalendarTitle: 'Calendrier des Cultures',
+                calendarDescription: 'Planifiez et visualisez les dates et événements importants pour vos cultures. Cliquez sur une date pour ajouter un événement.',
+                prevMonth: 'Mois précédent',
+                nextMonth: 'Mois suivant',
+                clearAllCalendarEvents: 'Effacer tous les événements du calendrier',
+
+                // Weather Section
+                localWeatherTitle: 'Météo Locale',
+                weatherDescription: 'Obtenez les conditions météorologiques actuelles et une courte prévision pour votre emplacement.',
+                cityNameLabel: 'Nom de la ville :',
+                cityPlaceholder: 'Ex: Accra',
+                countryLabel: 'Pays (Optionnel, pour une meilleure précision) :',
+                countryPlaceholder: 'Ex: Ghana',
+                getWeather: 'Obtenir la météo',
+                currentWeatherIn: 'Météo actuelle à',
+                temperature: 'Température',
+                conditions: 'Conditions',
+                humidity: 'Humidité',
+                windSpeed: 'Vitesse du vent',
+                todaysForecast: 'Prévisions pour aujourd\'hui :',
+                maxTemp: 'Temp. Max', // New for weather
+                minTemp: 'Temp. Min', // New for weather
+                precipitation: 'Précipitations', // New for weather
+                summary: 'Résumé', // New for weather
+                weatherDisclaimer: 'Données météorologiques fournies par Open-Meteo.',
+                weatherErrorText: 'Impossible de récupérer les données météorologiques. Veuillez vérifier l\'emplacement ou réessayer plus tard.',
+
+                // Expense Tracking Section
+                expenseTrackingTitle: 'Suivi des Dépenses',
+                expenseTrackingDescription: 'Enregistrez vos dépenses agricoles ici pour suivre vos dépenses.',
+                amountLabel: 'Montant ($) :',
+                amountPlaceholder: 'Ex: 150.75',
+                categoryLabel: 'Catégorie :',
+                selectCategoryOption: '-- Sélectionnez une catégorie --',
+                seeds: 'Semences',
+                fertilizer: 'Engrais',
+                pesticides: 'Pesticides',
+                labor: 'Main d\'œuvre',
+                equipmentMaintenance: 'Entretien de l\'équipement',
+                fuel: 'Carburant',
+                waterIrrigation: 'Eau/Irrigation',
+                landLease: 'Location de terrain',
+                expenseNotesPlaceholder: 'Ajouter des détails pertinents sur cette dépense.',
+                addExpense: 'Ajouter une dépense',
+                myExpensesTitle: 'Mes dépenses',
+                noExpensesMessage: 'Aucune dépense enregistrée pour l\'instant.',
+                clearAllExpenses: 'Effacer toutes les dépenses',
+
+                // Yield Tracking Section
+                yieldTrackingTitle: 'Suivi des Rendements',
+                yieldTrackingDescription: 'Enregistrez vos rendements de récolte pour suivre la productivité.',
+                yieldAmountPlaceholder: 'Ex: 5000',
+                unitLabel: 'Unité :',
+                selectUnitOption: '-- Sélectionnez une unité --',
+                kg: 'Kilogrammes (kg)',
+                lbs: 'Livres (lbs)',
+                bushels: 'Boisseaux',
+                tons: 'Tonnes',
+                boxes: 'Caisses',
+                addYield: 'Ajouter un rendement',
+                myYieldRecordsTitle: 'Mes enregistrements de rendement',
+                noYieldsMessage: 'Aucun enregistrement de rendement pour l\'instant.',
+                clearAllYields: 'Effacer tous les rendements',
+                harvestDateLabel: 'Date de récolte :',
+                yieldNotesPlaceholder: 'Ajouter des détails pertinents sur ce rendement, ex: \'Bonne qualité, faible perte.\'',
+                selectCropPlanOption: '-- Sélectionnez un plan de culture --',
+                cropPlan: 'Plan de culture',
+
+                // Planting Recommendations AI Section
+                aiPlantingRecommendationsTitle: 'Recommandations de Plantation par IA',
+                aiPlantingRecommendationsDescription: 'Obtenez des recommandations de plantation optimisées par l\'IA en fonction des conditions de votre ferme.',
+                soilDataTitle: 'Données du Sol :',
+                nitrogenLabel: 'Azote (N) ppm :',
+                nitrogenPlaceholder: 'Ex: 50',
+                phosphorusLabel: 'Phosphore (P) ppm :',
+                phosphorusPlaceholder: 'Ex: 20',
+                potassiumLabel: 'Potassium (K) ppm :',
+                potassiumPlaceholder: 'Ex: 100',
+                phLevelLabel: 'Niveau de pH :',
+                phLevelPlaceholder: 'Ex: 6.5',
+                otherFactorsTitle: 'Autres facteurs :',
+                previousCropYieldNotesLabel: 'Notes sur le rendement de la saison précédente :',
+                previousCropYieldNotesPlaceholder: 'Ex: \'Le rendement du maïs était modéré, environ 150 boisseaux/acre, légèrement inférieur à la moyenne en raison d\'une sécheresse précoce.\'',
+                pestIssuesNotesLabel: 'Problèmes actuels/historiques de parasites/maladies (Notes) :',
+                pestIssuesNotesPlaceholder: 'Ex: \'J\'ai eu des problèmes avec la pyrale du maïs et quelques taches fongiques l\'année dernière.\'',
+                lastSeasonWeatherNotesLabel: 'Tendances météorologiques de la saison dernière (Notes) :',
+                lastSeasonWeatherNotesPlaceholder: 'Ex: \'Printemps sec, été chaud et humide avec des pluies fortes dispersées en août.\'',
+                getRecommendations: 'Obtenir les recommandations',
+                clearInputs: 'Effacer les entrées',
+                plantingDisclaimer: 'Avertissement : Ces recommandations sont générées par l\'IA en fonction des entrées fournies et doivent être recoupées avec des experts agricoles locaux et les conditions.',
+
+                // Diagnosis History
+                diagnosisHistoryTitle: 'Historique des diagnostics',
+                diagnosisHistoryDescription: 'Consultez vos diagnostics passés ici. Les données sont stockées hors ligne dans votre navigateur.',
+                noPastDiagnosesMessage: 'Aucun diagnostic passé trouvé.',
+                clearHistory: 'Effacer l\'historique',
+
+                // About
+                aboutAgriDiagAITitle: 'À Propos d\'AgriDiag AI',
+                aboutAgriDiagAIP1: 'AgriDiag AI est conçu pour aider les agriculteurs et les passionnés d\'agriculture à identifier rapidement les problèmes potentiels de leurs cultures. En tirant parti de la puissance de l\'intelligence artificielle, nous visons à fournir des diagnostics initiaux et des recommandations générales basées sur les symptômes observés.',
+                aboutAgriDiagAIP2: 'Notre objectif est d\'être un outil utile pour la détection précoce, permettant des interventions rapides et favorisant des cultures plus saines. N\'oubliez pas que cet outil fournit des conseils informatifs et doit être complété par une consultation agricole professionnelle pour des solutions précises.',
+                aboutAgriDiagAIP3: 'Construit avec des technologies web modernes (HTML, CSS, JavaScript) et utilisant le stockage hors ligne basé sur le navigateur (IndexedDB) pour votre commodité.',
+
+                // About Developer
+                aboutDeveloperTitle: 'À Propos du Développeur',
+                developerName: 'Ako Abanda Bonaventure Nyenty',
+                developerBio: 'Ako Abanda Bonaventure Nyenty est l\'esprit innovant derrière AgriDiag AI. Passionné d\'agriculture et de technologie, Ako a développé cette application pour donner aux agriculteurs des outils accessibles et intelligents pour la gestion de la santé des cultures.',
+                contactLabel: 'Contact :',
+                emailLabel: 'Courriel',
+                linkedinLabel: 'LinkedIn',
+                developerEmailDisclaimer: 'Note : L\'e-mail fourni est un espace réservé. Pour un contact professionnel direct, veuillez utiliser le profil LinkedIn.',
+
+                // Contact
+                contactUsTitle: 'Nous Contacter',
+                contactUsP1: 'Vous avez des questions, des commentaires ou besoin d\'aide ? Nous sommes là pour vous aider !',
+                phoneLabel: 'Téléphone :',
+                addressLabel: 'Adresse :',
+                contactUsP2: 'N\'hésitez pas à nous contacter pour toute question agricole ou assistance technique avec l\'application.',
+
+                // Footer
+                copyright: '&copy; 2024 AgriDiag AI. Tous droits réservés.',
+                footerDisclaimer: 'Avertissement : Cet outil est à titre informatif uniquement. Consultez des experts agricoles pour des conseils précis.',
+                privacyNotice: 'Avis de confidentialité',
+                backToTop: 'Retour en haut',
+            }
+        };
+
+        // Crop Planning elements
+        const planCropName = document.getElementById('planCropName');
+        const planPlantingDate = document.getElementById('planPlantingDate');
+        const planHarvestDate = document.getElementById('planHarvestDate');
+        const planNotes = document.getElementById('planNotes');
+        const addCropPlanButton = document.getElementById('addCropPlanButton');
+        const cropPlansList = document.getElementById('cropPlansList');
+        const noCropPlansMessage = document.getElementById('noCropPlansMessage');
+        const clearCropPlansButton = document.getElementById('clearCropPlansButton');
+
+        // Calendar elements
+        const calendarGrid = document.getElementById('calendarGrid');
+        const currentMonthYear = document.getElementById('currentMonthYear');
+        const prevMonthButton = document.getElementById('prevMonthButton');
+        const nextMonthButton = document.getElementById('nextMonthButton');
+        const eventModal = document.getElementById('eventModal');
+        const eventModalDate = document.getElementById('eventModalDate');
+        const eventTitleInput = document.getElementById('eventTitleInput');
+        const eventDescriptionInput = document.getElementById('eventDescriptionInput');
+        const eventRelatedCropSelect = document.getElementById('eventRelatedCropSelect');
+        const saveEventButton = document.getElementById('saveEventButton');
+        const cancelEventButton = document.getElementById('cancelEventButton');
+        const clearCalendarEventsButton = document.getElementById('clearCalendarEventsButton');
+
+        let currentCalendarDate = new Date(); // To track current month/year in calendar view
+        let selectedDateForEvent = null; // To store date when adding an event
+
+        // Weather elements
+        const cityInput = document.getElementById('cityInput');
+        const countryInput = document.getElementById('countryInput');
+        const getWeatherButton = document.getElementById('getWeatherButton');
+        // Removed: const getGeolocationWeatherButton = document.getElementById('getGeolocationWeatherButton');
+        const weatherButtonText = document.getElementById('weatherButtonText');
+        const weatherLoader = document.getElementById('weatherLoader');
+        const weatherResult = document.getElementById('weatherResult');
+        const weatherLocation = document.getElementById('weatherLocation');
+        const currentTemp = document.getElementById('currentTemp');
+        const currentConditions = document.getElementById('currentConditions');
+        const currentHumidity = document.getElementById('currentHumidity');
+        const currentWind = document.getElementById('currentWind');
+        const dailyForecast = document.getElementById('dailyForecast');
+        const weatherError = document.getElementById('weatherError');
+
+        // Expense Tracking elements
+        const expenseAmount = document.getElementById('expenseAmount');
+        const expenseCategory = document.getElementById('expenseCategory');
+        const expenseDate = document.getElementById('expenseDate');
+        const expenseNotes = document.getElementById('expenseNotes');
+        const addExpenseButton = document.getElementById('addExpenseButton');
+        const expensesList = document.getElementById('expensesList');
+        const noExpensesMessage = document.getElementById('noExpensesMessage');
+        const clearExpensesButton = document.getElementById('clearExpensesButton');
+
+        // Yield Tracking elements
+        const yieldAmount = document.getElementById('yieldAmount');
+        const yieldUnit = document.getElementById('yieldUnit');
+        const yieldCropSelect = document.getElementById('yieldCropSelect');
+        const yieldDate = document.getElementById('yieldDate');
+        const yieldNotes = document.getElementById('yieldNotes');
+        const addYieldButton = document.getElementById('addYieldButton');
+        const yieldsList = document.getElementById('yieldsList');
+        const noYieldsMessage = document.getElementById('noYieldsMessage');
+        const clearYieldsButton = document.getElementById('clearYieldsButton');
+
+        // Planting Recommendations AI elements
+        const soilNitrogen = document.getElementById('soilNitrogen');
+        const soilPhosphorus = document.getElementById('soilPhosphorus');
+        const soilPotassium = document.getElementById('soilPotassium');
+        const phLevel = document.getElementById('phLevel');
+        const previousCropYieldNotes = document.getElementById('previousCropYieldNotes');
+        const pestIssuesNotes = document.getElementById('pestIssuesNotes');
+        const lastSeasonWeatherNotes = document.getElementById('lastSeasonWeatherNotes');
+        const getPlantingRecommendationButton = document.getElementById('getPlantingRecommendationButton');
+        const clearPlantingInputsButton = document.getElementById('clearPlantingInputsButton');
+        const plantingRecommendationResult = document.getElementById('plantingRecommendationResult');
+        const plantingResultContent = document.getElementById('plantingResultContent');
+        const plantingButtonText = document.getElementById('plantingButtonText');
+        const plantingLoader = document.getElementById('plantingLoader');
+
+
+        // --- IndexedDB Setup ---
+        const DB_NAME = 'AgriDiagDB';
+        const DB_VERSION = 5; // Increment version for new features
+        const DIAGNOSES_STORE = 'diagnoses';
+        const CROP_PLANS_STORE = 'crop_plans';
+        const CALENDAR_EVENTS_STORE = 'calendar_events';
+        const EXPENSES_STORE = 'expenses'; // New store for expenses
+        const YIELDS_STORE = 'yields';     // New store for yields
+        // No new store for planting recommendations as they are generated on demand.
+        let db;
+
+        /**
+         * Initializes the IndexedDB database.
+         * @returns {Promise<IDBDatabase>} A promise that resolves with the database object.
+         */
+        function initDb() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onerror = (event) => {
+                    console.error('IndexedDB error:', event.target.errorCode);
+                    showToast('Error opening database.');
+                    reject('IndexedDB error');
+                };
+
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    console.log('IndexedDB opened successfully');
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    // Create object stores if they don't exist
+                    if (!db.objectStoreNames.contains(DIAGNOSES_STORE)) {
+                        const diagnosesStore = db.createObjectStore(DIAGNOSES_STORE, { keyPath: 'id', autoIncrement: true });
+                        diagnosesStore.createIndex('timestamp', 'timestamp', { unique: false });
+                        console.log('Diagnoses store created/upgraded');
+                    }
+                    if (!db.objectStoreNames.contains(CROP_PLANS_STORE)) {
+                        const cropPlansStore = db.createObjectStore(CROP_PLANS_STORE, { keyPath: 'id', autoIncrement: true });
+                        cropPlansStore.createIndex('cropName', 'cropName', { unique: false });
+                        console.log('Crop Plans store created/upgraded');
+                    }
+                     if (!db.objectStoreNames.contains(CALENDAR_EVENTS_STORE)) {
+                        const calendarEventsStore = db.createObjectStore(CALENDAR_EVENTS_STORE, { keyPath: 'id', autoIncrement: true });
+                        calendarEventsStore.createIndex('date', 'date', { unique: false }); // Index for faster event retrieval by date
+                        console.log('Calendar Events store created/upgraded');
+                    }
+                    // New stores for Expense and Yield Tracking
+                    if (!db.objectStoreNames.contains(EXPENSES_STORE)) {
+                        const expensesStore = db.createObjectStore(EXPENSES_STORE, { keyPath: 'id', autoIncrement: true });
+                        expensesStore.createIndex('date', 'date', { unique: false });
+                        console.log('Expenses store created/upgraded');
+                    }
+                    if (!db.objectStoreNames.contains(YIELDS_STORE)) {
+                        const yieldsStore = db.createObjectStore(YIELDS_STORE, { keyPath: 'id', autoIncrement: true });
+                        yieldsStore.createIndex('date', 'date', { unique: false });
+                        yieldsStore.createIndex('cropId', 'cropId', { unique: false });
+                        console.log('Yields store created/upgraded');
+                    }
+                };
+            });
+        }
+
+        /**
+         * Generic function to add a record to a specified IndexedDB store.
+         * @param {string} storeName - The name of the object store.
+         * @param {object} data - The data to add.
+         * @returns {Promise<void>}
+         */
+        async function addRecordToDB(storeName, data) {
+            if (!db) await initDb();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], 'readwrite');
+                const objectStore = transaction.objectStore(storeName);
+                const request = objectStore.add(data);
+
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        /**
+         * Generic function to get all records from a specified IndexedDB store.
+         * @param {string} storeName - The name of the object store.
+         * @param {string} [indexName] - Optional index to use for sorting.
+         * @returns {Promise<Array>}
+         */
+        async function getRecordsFromDB(storeName, indexName = null) {
+            if (!db) await initDb();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], 'readonly');
+                const objectStore = transaction.objectStore(storeName);
+                const request = indexName ? objectStore.index(indexName).getAll() : objectStore.getAll();
+
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        /**
+         * Generic function to clear all records from a specified IndexedDB store.
+         * @param {string} storeName - The name of the object store.
+         * @returns {Promise<void>}
+         */
+        async function clearAllRecordsFromDB(storeName) {
+            if (!db) await initDb();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], 'readwrite');
+                const objectStore = transaction.objectStore(storeName);
+                const request = objectStore.clear();
+
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        /**
+         * Updates the UI elements based on the current language.
+         * It iterates through elements with `data-key` attributes and updates their text content
+         * or placeholder attributes using the `translations` object.
+         * @param {string} lang - The target language ('en' or 'fr').
+         */
+        function updateUIForLanguage(lang) {
+            currentLanguage = lang;
+            const elements = document.querySelectorAll('[data-key]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (translations[lang] && translations[lang][key]) {
+                    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                        // Handle placeholders for input and textarea
+                        if (element.hasAttribute('placeholder')) {
+                            element.placeholder = translations[lang][key];
+                        } else {
+                            // For input types like 'button' or other inputs that might have data-key but not placeholder
+                            element.value = translations[lang][key];
+                        }
+                    } else if (element.tagName === 'OPTION') {
+                        element.textContent = translations[lang][key];
+                    } else {
+                        // For all other elements, set textContent
+                        element.textContent = translations[lang][key];
+                    }
+                }
+            });
+        }
+
+        /**
+         * Initial sync of language switchers.
+         */
+        function syncLanguageSwitchers() {
+            languageSwitcherDesktop.value = currentLanguage;
+            languageSwitcherMobile.value = currentLanguage;
+        }
+
+        // --- UI Functions ---
+
+        /**
+         * Toggles the mobile menu visibility and overlay.
+         */
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        /**
+         * Displays the selected file name for image upload.
+         * @param {HTMLInputElement} input - The file input element.
+         */
+        function displayFileName(input) {
+            if (input.files.length > 0) {
+                fileNameSpan.textContent = input.files[0].name;
+                showToast(currentLanguage === 'fr' ? 'Image sélectionnée (à titre indicatif uniquement).' : 'Image selected (for display purposes only).');
+            } else {
+                fileNameSpan.textContent = translations[currentLanguage]['noFileChosen'];
+            }
+        }
+
+        /**
+         * Shows a toast message at the bottom of the screen.
+         * @param {string} message - The message to display.
+         * @param {number} duration - How long to display the toast in milliseconds (default: 3000).
+         */
+        function showToast(message, duration = 3000) {
+            toastMessage.textContent = message;
+            toastMessage.classList.add('show');
+            setTimeout(() => {
+                toastMessage.classList.remove('show');
+            }, duration);
+        }
+
+        /**
+         * Shows a custom modal with a message and confirmation buttons.
+         * @param {string} message - The message to display in the modal.
+         * @param {function} onConfirm - Callback function if "Confirm" is clicked.
+         * @param {function} onCancel - Callback function if "Cancel" is clicked.
+         */
+        function showModal(message, onConfirm, onCancel) {
+            modalMessage.textContent = message;
+            modalConfirmBtn.onclick = () => {
+                closeModal('alertModal');
+                onConfirm();
+            };
+            modalCancelBtn.onclick = () => {
+                closeModal('alertModal');
+                onCancel();
+            };
+            alertModal.style.display = 'flex';
+        }
+
+        /**
+         * Closes a specified modal.
+         * @param {string} modalId - The ID of the modal to close.
+         */
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        /**
+         * Displays the diagnosis results.
+         * @param {string} cropType - The selected crop type.
+         * @param {string} severity - The selected symptom severity.
+         * @param {string} symptoms - The symptoms entered by the user.
+         * @param {string} diagnosisText - The AI-generated diagnosis.
+         */
+        function displayDiagnosisResult(cropType, severity, symptoms, diagnosisText) {
+            let formattedDiagnosis = diagnosisText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold markdown
+            formattedDiagnosis = formattedDiagnosis.replace(/\n/g, '<br>'); // Newlines to <br>
+
+            resultContentDiv.innerHTML = `
+                <p><strong>${translations[currentLanguage]['cropType'] || 'Crop Type'}:</strong> ${cropType || translations[currentLanguage]['notSpecified']}</p>
+                <p><strong>${translations[currentLanguage]['symptomSeverity'] || 'Symptom Severity'}:</strong> ${severity || translations[currentLanguage]['notSpecified']}</p>
+                <p><strong>${translations[currentLanguage]['symptomsProvided'] || 'Symptoms Provided'}:</strong></p>
+                <p class="mb-4 italic">${symptoms || translations[currentLanguage]['noSymptomsProvided']}</p>
+                <p><strong>${translations[currentLanguage]['aiDiagnosis'] || 'AI Diagnosis'}:</strong></p>
+                <div class="leading-relaxed">${formattedDiagnosis}</div>
+            `;
+            diagnosisResultDiv.classList.remove('hidden');
+        }
+
+        /**
+         * Renders the diagnosis history from IndexedDB into the UI.
+         */
+        async function renderDiagnosisHistory() {
+            historyList.innerHTML = ''; // Clear current history
+            const diagnoses = await getRecordsFromDB(DIAGNOSES_STORE, 'timestamp'); // Get and sort by timestamp
+
+            if (diagnoses.length === 0) {
+                noHistoryMessage.classList.remove('hidden');
+                clearHistoryButton.classList.add('hidden');
+                return;
+            } else {
+                noHistoryMessage.classList.add('hidden');
+                clearHistoryButton.classList.remove('hidden');
+            }
+
+            diagnoses.forEach(record => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-200';
+                const date = new Date(record.timestamp).toLocaleString(currentLanguage); // Localized date
+                let formattedDiagnosis = record.diagnosis.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold markdown
+                formattedDiagnosis = formattedDiagnosis.replace(/\n/g, '<br>'); // Newlines to <br>
+
+                historyItem.innerHTML = `
+                    <p class="text-sm text-gray-500 mb-2">${date}</p>
+                    <p class="font-medium text-gray-700 mb-2"><strong>${translations[currentLanguage]['cropType'] || 'Crop Type'}:</strong> ${record.cropType || 'N/A'}</p>
+                    <p class="font-medium text-gray-700 mb-2"><strong>${translations[currentLanguage]['symptomSeverity'] || 'Symptom Severity'}:</strong> ${record.severity || 'N/A'}</p>
+                    <p class="font-medium text-gray-700 mb-2"><strong>${translations[currentLanguage]['symptoms'] || 'Symptoms'}:</strong> ${record.symptoms}</p>
+                    <div class="text-gray-600 text-sm leading-relaxed max-h-24 overflow-y-auto">
+                        <strong>${translations[currentLanguage]['diagnosis'] || 'Diagnosis'}:</strong> ${formattedDiagnosis}
+                    </div>
+                `;
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        /**
+         * Renders the crop plans from IndexedDB into the UI.
+         */
+        async function renderCropPlans() {
+            cropPlansList.innerHTML = ''; // Clear current list
+            const cropPlans = await getRecordsFromDB(CROP_PLANS_STORE); // No specific index needed for display order
+
+            if (cropPlans.length === 0) {
+                noCropPlansMessage.classList.remove('hidden');
+                clearCropPlansButton.classList.add('hidden');
+                return;
+            } else {
+                noCropPlansMessage.classList.add('hidden');
+                clearCropPlansButton.classList.remove('hidden');
+            }
+
+            cropPlans.forEach(plan => {
+                const planItem = document.createElement('div');
+                planItem.className = 'bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-200';
+                planItem.innerHTML = `
+                    <h4 class="font-semibold text-lg text-emerald-700 mb-2">${plan.cropName}</h4>
+                    <p class="text-sm text-gray-600"><strong>${translations[currentLanguage]['plantingDateLabel'] || 'Planting Date'}:</strong> ${plan.plantingDate || 'N/A'}</p>
+                    <p class="text-sm text-gray-600"><strong>${translations[currentLanguage]['harvestDateLabel'] || 'Harvest Date'}:</strong> ${plan.harvestDate || 'N/A'}</p>
+                    <p class="text-sm text-gray-600 mt-2"><strong>${translations[currentLanguage]['notesLabel'] || 'Notes'}:</strong> ${plan.notes || translations[currentLanguage]['noNotes'] || 'No notes.'}</p>
+                `;
+                cropPlansList.appendChild(planItem);
+            });
+
+            // Populate crop plan options in event modal and yield section
+            populateCropPlanSelect();
+            populateYieldCropSelect();
+        }
+
+        /**
+         * Populates the "Related Crop Plan" select dropdown in the event modal.
+         */
+        async function populateCropPlanSelect() {
+            eventRelatedCropSelect.innerHTML = `<option value="">${translations[currentLanguage]['noneOption'] || '-- None --'}</option>`;
+            const cropPlans = await getRecordsFromDB(CROP_PLANS_STORE);
+            cropPlans.forEach(plan => {
+                const option = document.createElement('option');
+                option.value = plan.id;
+                option.textContent = plan.cropName;
+                eventRelatedCropSelect.appendChild(option);
+            });
+        }
+
+        /**
+         * Populates the "Related Crop Plan" select dropdown in the yield tracking section.
+         */
+        async function populateYieldCropSelect() {
+            yieldCropSelect.innerHTML = `<option value="">${translations[currentLanguage]['selectCropPlanOption'] || '-- Select a crop plan --'}</option>`;
+            const cropPlans = await getRecordsFromDB(CROP_PLANS_STORE);
+            cropPlans.forEach(plan => {
+                const option = document.createElement('option');
+                option.value = plan.id;
+                option.textContent = plan.cropName;
+                yieldCropSelect.appendChild(option);
+            });
+        }
+
+
+        /**
+         * Renders the calendar grid for the current month.
+         * @param {Date} date - The date object representing the current month/year to render.
+         */
+        async function renderCalendar(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth(); // 0-indexed
+
+            currentMonthYear.textContent = date.toLocaleString(currentLanguage, { month: 'long', year: 'numeric' });
+            calendarGrid.innerHTML = ''; // Clear previous grid
+
+            const weekdays = [
+                currentLanguage === 'fr' ? 'Dim' : 'Sun',
+                currentLanguage === 'fr' ? 'Lun' : 'Mon',
+                currentLanguage === 'fr' ? 'Mar' : 'Tue',
+                currentLanguage === 'fr' ? 'Mer' : 'Wed',
+                currentLanguage === 'fr' ? 'Jeu' : 'Thu',
+                currentLanguage === 'fr' ? 'Ven' : 'Fri',
+                currentLanguage === 'fr' ? 'Sam' : 'Sat'
+            ];
+            weekdays.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = day;
+                calendarGrid.appendChild(dayHeader);
+            });
+
+            // Get the first day of the month and its weekday (0 for Sunday, 6 for Saturday)
+            const firstDayOfMonth = new Date(year, month, 1);
+            const startingDay = firstDayOfMonth.getDay();
+
+            // Get the number of days in the current month
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Get events for the current month
+            const allEvents = await getRecordsFromDB(CALENDAR_EVENTS_STORE);
+            const eventsForMonth = allEvents.filter(event => {
+                const eventDate = new Date(event.date);
+                return eventDate.getFullYear() === year && eventDate.getMonth() === month;
+            });
+
+            // Add empty cells for days before the 1st
+            for (let i = 0; i < startingDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day inactive';
+                calendarGrid.appendChild(emptyDay);
+            }
+
+            // Add actual days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const currentDay = new Date(year, month, day);
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day relative';
+                dayElement.setAttribute('data-date', currentDay.toISOString().split('T')[0]); //YYYY-MM-DD
+
+                // Mark current day
+                if (currentDay.toDateString() === new Date().toDateString()) {
+                    dayElement.classList.add('current-day');
+                }
+
+                const dayNumber = document.createElement('span');
+                dayNumber.className = 'calendar-day-number';
+                dayNumber.textContent = day;
+                dayElement.appendChild(dayNumber);
+
+                const eventsForThisDay = eventsForMonth.filter(event => {
+                    const eventDate = new Date(event.date);
+                    return eventDate.getDate() === day;
+                });
+
+                if (eventsForThisDay.length > 0) {
+                    dayElement.classList.add('has-event');
+                    const eventList = document.createElement('div');
+                    eventList.className = 'calendar-events';
+                    eventsForThisDay.forEach(event => {
+                        const eventDiv = document.createElement('div');
+                        eventDiv.textContent = event.title;
+                        eventList.appendChild(eventDiv);
+                    });
+                    dayElement.appendChild(eventList);
+                }
+
+                dayElement.addEventListener('click', () => showEventModal(currentDay));
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        /**
+         * Shows the event modal for adding/viewing events on a specific date.
+         * @param {Date} date - The date selected on the calendar.
+         */
+        async function showEventModal(date) {
+            selectedDateForEvent = date; // Store the date
+            eventModalDate.textContent = date.toDateString(); // Displays in browser's default locale
+            eventTitleInput.value = '';
+            eventDescriptionInput.value = '';
+            eventRelatedCropSelect.value = '';
+
+            await populateCropPlanSelect(); // Ensure crop plans are loaded
+
+            eventModal.style.display = 'flex';
+        }
+
+        /**
+         * Maps Open-Meteo weather codes to Font Awesome icons.
+         * @param {number} weatherCode - The WMO weather interpretation code.
+         * @returns {string} The Font Awesome class for the corresponding icon.
+         */
+        function getWeatherIconClass(weatherCode) {
+            // WMO Weather Interpretation Codes (simplified mapping to common icons)
+            if (weatherCode === 0) return 'fas fa-sun'; // Clear sky
+            if (weatherCode >= 1 && weatherCode <= 3) return 'fas fa-cloud-sun'; // Partly cloudy to overcast
+            if (weatherCode >= 45 && weatherCode <= 48) return 'fas fa-smog'; // Fog, depositing fog
+            if (weatherCode >= 51 && weatherCode <= 57) return 'fas fa-cloud-drizzle'; // Drizzle
+            if (weatherCode >= 61 && weatherCode <= 67) return 'fas fa-cloud-showers-heavy'; // Rain
+            if (weatherCode >= 71 && weatherCode <= 77) return 'fas fa-cloud-snow'; // Snow fall
+            if (weatherCode >= 80 && weatherCode <= 82) return 'fas fa-cloud-showers-heavy'; // Rain showers
+            if (weatherCode >= 85 && weatherCode <= 86) return 'fas fa-snowflake'; // Snow showers
+            if (weatherCode >= 95 && weatherCode <= 99) return 'fas fa-cloud-bolt'; // Thunderstorm
+            return 'fas fa-question'; // Default for unknown
+        }
+
+        /**
+         * Formats weather code into a readable condition string.
+         * @param {number} weatherCode - The WMO weather interpretation code.
+         * @returns {string} Readable weather condition.
+         */
+        function getWeatherConditionText(weatherCode) {
+            const conditions = {
+                0: currentLanguage === 'fr' ? 'Ciel clair' : 'Clear sky',
+                1: currentLanguage === 'fr' ? 'Principalement clair' : 'Mainly clear',
+                2: currentLanguage === 'fr' ? 'Partiellement nuageux' : 'Partly cloudy',
+                3: currentLanguage === 'fr' ? 'Couvert' : 'Overcast',
+                45: currentLanguage === 'fr' ? 'Brouillard' : 'Fog',
+                48: currentLanguage === 'fr' ? 'Brouillard givrant' : 'Depositing fog',
+                51: currentLanguage === 'fr' ? 'Bruine légère' : 'Light drizzle',
+                53: currentLanguage === 'fr' ? 'Bruine modérée' : 'Moderate drizzle',
+                55: currentLanguage === 'fr' ? 'Bruine dense' : 'Dense drizzle',
+                56: currentLanguage === 'fr' ? 'Bruine verglaçante légère' : 'Light freezing drizzle',
+                57: currentLanguage === 'fr' ? 'Bruine verglaçante dense' : 'Dense freezing drizzle',
+                61: currentLanguage === 'fr' ? 'Pluie légère' : 'Light rain',
+                63: currentLanguage === 'fr' ? 'Pluie modérée' : 'Moderate rain',
+                65: currentLanguage === 'fr' ? 'Pluie forte' : 'Heavy rain',
+                66: currentLanguage === 'fr' ? 'Pluie verglaçante légère' : 'Light freezing rain',
+                67: currentLanguage === 'fr' ? 'Pluie verglaçante forte' : 'Heavy freezing rain',
+                71: currentLanguage === 'fr' ? 'Chute de neige légère' : 'Light snowfall',
+                73: currentLanguage === 'fr' ? 'Chute de neige modérée' : 'Moderate snowfall',
+                75: currentLanguage === 'fr' ? 'Chute de neige forte' : 'Heavy snowfall',
+                77: currentLanguage === 'fr' ? 'Grains de neige' : 'Snow grains',
+                80: currentLanguage === 'fr' ? 'Averses de pluie légères' : 'Light rain showers',
+                81: currentLanguage === 'fr' ? 'Averses de pluie modérées' : 'Moderate rain showers',
+                82: currentLanguage === 'fr' ? 'Averses de pluie violentes' : 'Violent rain showers',
+                85: currentLanguage === 'fr' ? 'Averses de neige légères' : 'Light snow showers',
+                86: currentLanguage === 'fr' ? 'Averses de neige fortes' : 'Heavy snow showers',
+                95: currentLanguage === 'fr' ? 'Orage' : 'Thunderstorm',
+                96: currentLanguage === 'fr' ? 'Orage avec légère grêle' : 'Thunderstorm with slight hail',
+                99: currentLanguage === 'fr' ? 'Orage avec forte grêle' : 'Thunderstorm with heavy hail'
+            };
+            return conditions[weatherCode] || (currentLanguage === 'fr' ? 'Inconnu' : 'Unknown');
+        }
+
+        /**
+         * Fetches weather data for a given city and country.
+         * @param {string} city - The city name.
+         * @param {string} country - The country name (optional).
+         */
+        async function getWeatherByCity(city, country = '') {
+            weatherLoader.style.display = 'block';
+            weatherButtonText.textContent = currentLanguage === 'fr' ? 'Récupération...' : 'Fetching...';
+            getWeatherButton.disabled = true;
+            weatherResult.classList.add('hidden');
+            weatherError.classList.add('hidden');
+
+            try {
+                // Step 1: Geocoding (get latitude and longitude from city/country)
+                let queryName = city;
+                if (country) {
+                    // Combine city and country for better search accuracy
+                    queryName = `${city}, ${country}`;
+                }
+                let geoApiUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(queryName)}&count=1&language=${currentLanguage}&format=json`;
+
+                const geoResponse = await fetch(geoApiUrl);
+                const geoData = await geoResponse.json();
+
+                if (!geoResponse.ok || !geoData.results || geoData.results.length === 0) {
+                    throw new Error(currentLanguage === 'fr' ? 'Localisation non trouvée.' : 'Location not found.');
+                }
+
+                const location = geoData.results[0];
+                const latitude = location.latitude;
+                const longitude = location.longitude;
+                const displayName = location.name + (location.admin1 ? `, ${location.admin1}` : '') + (location.country ? `, ${location.country}` : '');
+
+                // Step 2: Fetch weather data using coordinates
+                const weatherApiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&hourly=relative_humidity_2m&timezone=${location.timezone || 'auto'}`;
+
+                const weatherResponse = await fetch(weatherApiUrl);
+                const weatherData = await weatherResponse.json();
+
+                if (!weatherResponse.ok || !weatherData.current_weather || !weatherData.daily) {
+                    throw new Error(currentLanguage === 'fr' ? 'Données météorologiques non disponibles pour cette localisation.' : 'Weather data not available for this location.');
+                }
+
+                // Display current weather
+                weatherLocation.textContent = displayName;
+                currentTemp.textContent = `${weatherData.current_weather.temperature}°C`;
+                currentConditions.textContent = getWeatherConditionText(weatherData.current_weather.weathercode);
+                // Check if hourly data exists before accessing humidity
+                currentHumidity.textContent = weatherData.hourly && weatherData.hourly.relative_humidity_2m && weatherData.hourly.relative_humidity_2m.length > 0 ? `${weatherData.hourly.relative_humidity_2m[0]}%` : 'N/A';
+                currentWind.textContent = `${weatherData.current_weather.windspeed} km/h`;
+
+                // Display daily forecast (simplified to today's max/min temp and precipitation)
+                dailyForecast.innerHTML = '';
+                if (weatherData.daily.time && weatherData.daily.time.length > 0) {
+                    const todayIndex = 0; // Today's forecast is the first entry
+                    const todayDate = new Date(weatherData.daily.time[todayIndex]).toDateString();
+                    const maxTemp = weatherData.daily.temperature_2m_max[todayIndex];
+                    const minTemp = weatherData.daily.temperature_2m_min[todayIndex];
+                    const precipitation = weatherData.daily.precipitation_sum[todayIndex];
+                    const weatherCodeDaily = weatherData.daily.weather_code[todayIndex];
+
+                    dailyForecast.innerHTML = `
+                                <p><i class="${getWeatherIconClass(weatherCodeDaily)} mr-2 text-blue-600"></i>${translations[currentLanguage]['dateLabel']}: ${todayDate}</p>
+                                <p><i class="fas fa-temperature-arrow-up mr-2 text-blue-600"></i>${translations[currentLanguage]['maxTemp'] || 'Max Temp'}: ${maxTemp}°C</p>
+                                <p><i class="fas fa-temperature-arrow-down mr-2 text-blue-600"></i>${translations[currentLanguage]['minTemp'] || 'Min Temp'}: ${minTemp}°C</p>
+                                <p><i class="fas fa-droplet mr-2 text-blue-600"></i>${translations[currentLanguage]['precipitation'] || 'Precipitation'}: ${precipitation} mm</p>
+                                <p><i class="fas fa-info-circle mr-2 text-blue-600"></i>${translations[currentLanguage]['summary'] || 'Summary'}: ${getWeatherConditionText(weatherCodeDaily)}</p>
+                            `;
+                }
+
+                weatherResult.classList.remove('hidden');
+                showToast(currentLanguage === 'fr' ? `Météo pour ${displayName} mise à jour.` : `Weather for ${displayName} updated.`);
+
+            } catch (error) {
+                console.error('Error fetching weather:', error);
+                weatherError.classList.remove('hidden');
+                weatherError.querySelector('p').textContent = `${translations[currentLanguage]['weatherErrorText'] || 'Error'}: ${error.message}. ${currentLanguage === 'fr' ? 'Veuillez vérifier l\'emplacement ou réessayer plus tard.' : 'Please check the location or try again later.'}`;
+                showToast(currentLanguage === 'fr' ? 'Échec de la récupération des données météorologiques.' : 'Failed to get weather data.');
+            } finally {
+                weatherLoader.style.display = 'none';
+                weatherButtonText.textContent = translations[currentLanguage]['getWeather'];
+                getWeatherButton.disabled = false;
+            }
+        }
+
+        /**
+         * Fetches weather data using the user's geolocation.
+         * This function is no longer called directly from a button in the UI.
+         */
+        function getGeolocationWeather() {
+            // This function is kept for completeness in case it's needed elsewhere or re-added later,
+            // but it's no longer directly triggered by a button in the current UI.
+            console.warn("getGeolocationWeather() was called but the associated button has been removed.");
+            // You can add a toast here if you want to explicitly tell the user this feature is disabled:
+            // showToast('Geolocation weather feature is currently disabled.');
+
+            // The following code block is for reference only and won't be executed unless explicitly called.
+            // If you decide to re-enable it, ensure all UI states (loaders, button disables) are correctly managed.
+            if (navigator.geolocation) {
+                // weatherLoader.style.display = 'block';
+                // weatherButtonText.textContent = 'Locating...';
+                // getWeatherButton.disabled = true;
+                // getGeolocationWeatherButton.disabled = true; // This element is removed.
+                // weatherResult.classList.add('hidden');
+                // weatherError.classList.add('hidden');
+
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    try {
+                        // Reverse geocoding to get location name for display (optional, but good UX)
+                        const geoApiUrl = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${latitude}&longitude=${longitude}&count=1&language=${currentLanguage}&format=json`;
+                        const geoResponse = await fetch(geoApiUrl);
+                        const geoData = await geoResponse.json();
+                        let displayName = `Lat: ${latitude.toFixed(2)}, Lon: ${longitude.toFixed(2)}`;
+                        if (geoData.results && geoData.results.length > 0) {
+                            const location = geoData.results[0];
+                            displayName = location.name + (location.admin1 ? `, ${location.admin1}` : '') + (location.country ? `, ${location.country}` : '');
+                        }
+
+                        const weatherApiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&hourly=relative_humidity_2m&timezone=auto`;
+                        const weatherResponse = await fetch(weatherApiUrl);
+                        const weatherData = await weatherResponse.json();
+
+                        if (!weatherResponse.ok || !weatherData.current_weather || !weatherData.daily) {
+                            throw new Error('Weather data not available for this location.');
+                        }
+
+                        // Update UI with weather data if this function were actively used
+                        // weatherLocation.textContent = displayName;
+                        // currentTemp.textContent = `${weatherData.current_weather.temperature}°C`;
+                        // currentConditions.textContent = getWeatherConditionText(weatherData.current_weather.weathercode);
+                        // currentHumidity.textContent = weatherData.hourly && weatherData.hourly.relative_humidity_2m && weatherData.hourly.relative_humidity_2m.length > 0 ? `${weatherData.hourly.relative_humidity_2m[0]}%` : 'N/A';
+                        // currentWind.textContent = `${weatherData.current_weather.windspeed} km/h`;
+
+                        // dailyForecast.innerHTML = '';
+                        // if (weatherData.daily.time && weatherData.daily.time.length > 0) {
+                        //     const todayIndex = 0;
+                        //     const todayDate = new Date(weatherData.daily.time[todayIndex]).toDateString();
+                        //     const maxTemp = weatherData.daily.temperature_2m_max[todayIndex];
+                        //     const minTemp = weatherData.daily.temperature_2m_min[todayIndex];
+                        //     const precipitation = weatherData.daily.precipitation_sum[todayIndex];
+                        //     const weatherCodeDaily = weatherData.daily.weather_code[todayIndex];
+
+                        //     dailyForecast.innerHTML = `
+                        //         <p><i class="${getWeatherIconClass(weatherCodeDaily)} mr-2 text-blue-600"></i>Date: ${todayDate}</p>
+                        //         <p><i class="fas fa-temperature-arrow-up mr-2 text-blue-600"></i>Max Temp: ${maxTemp}°C</p>
+                        //         <p><i class="fas fa-temperature-arrow-down mr-2 text-blue-600"></i>Min Temp: ${minTemp}°C</p>
+                        //         <p><i class="fas fa-droplet mr-2 text-blue-600"></i>Precipitation: ${precipitation} mm</p>
+                        //         <p><i class="fas fa-info-circle mr-2 text-blue-600"></i>Summary: ${getWeatherConditionText(weatherCodeDaily)}</p>
+                        //     `;
+                        // }
+
+                        // weatherResult.classList.remove('hidden');
+                        // showToast(`Weather for ${displayName} updated.`);
+
+                    } catch (error) {
+                        console.error('Error fetching geolocation weather:', error);
+                        // weatherError.classList.add('hidden');
+                        // weatherError.querySelector('p').textContent = `Error: ${error.message}. Could not get weather for your location.`;
+                        // showToast('Failed to get weather data for your location.');
+                    } finally {
+                        // weatherLoader.style.display = 'none';
+                        // weatherButtonText.textContent = 'Get Weather';
+                        // getWeatherButton.disabled = false;
+                        // getGeolocationWeatherButton.disabled = false; // This element is removed.
+                    }
+                }, (error) => {
+                    console.error('Geolocation error:', error);
+                    // weatherLoader.style.display = 'none';
+                    // weatherButtonText.textContent = 'Get Weather';
+                    // getWeatherButton.disabled = false;
+                    // getGeolocationWeatherButton.disabled = false; // This element is removed.
+                    // weatherError.classList.remove('hidden');
+
+                    let errorMessage = (currentLanguage === 'fr' ? 'La géolocalisation a échoué. ' : 'Geolocation failed. ');
+                    if (error && error.message) {
+                        errorMessage += error.message;
+                    } else if (error && error.code) {
+                        if (error.code === error.PERMISSION_DENIED) {
+                            errorMessage += (currentLanguage === 'fr' ? 'Permission refusée : Veuillez activer l\'accès à la localisation dans les paramètres de votre navigateur.' : 'Permission denied: Please enable location access in your browser settings.');
+                        } else if (error.code === error.POSITION_UNAVAILABLE) {
+                            errorMessage += (currentLanguage === 'fr' ? 'Position indisponible : Les informations de localisation ne sont pas disponibles actuellement.' : 'Position unavailable: Location information is currently unavailable.');
+                        } else if (error.code === error.TIMEOUT) {
+                            errorMessage += (currentLanguage === 'fr' ? 'Délai dépassé : La demande pour obtenir la localisation de l\'utilisateur a expiré.' : 'Timeout: The request to get user location timed out.');
+                        } else {
+                            errorMessage += (currentLanguage === 'fr' ? `Code d\'erreur inconnu : ${error.code}.` : `Unknown error code: ${error.code}.`);
+                        }
+                    } else {
+                        errorMessage += (currentLanguage === 'fr' ? 'Une erreur inconnue s\'est produite, probablement due à des restrictions du navigateur ou à un objet d\'erreur vide.' : 'An unknown error occurred, possibly due to browser restrictions or an empty error object.');
+                    }
+
+                    // weatherError.querySelector('p').textContent = `Geolocation Error: ${errorMessage}`;
+                    // showToast('Geolocation failed.');
+                });
+            } else {
+                showToast(currentLanguage === 'fr' ? 'La géolocalisation n\'est pas prise en charge par votre navigateur.' : 'Geolocation is not supported by your browser.');
+                // weatherError.classList.remove('hidden');
+                // weatherError.querySelector('p').textContent = 'Geolocation is not supported by your browser.';
+            }
+        }
+
+
+        /**
+         * Handles the AI diagnosis process.
+         */
+        async function handleDiagnosis() {
+            const cropType = cropTypeSelect.value;
+            const severity = severitySelect.value;
+            const symptoms = symptomsInput.value.trim();
+
+            if (!cropType) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez sélectionner un type de culture.' : 'Please select a crop type.');
+                return;
+            }
+            if (!severity) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez sélectionner la gravité des symptômes.' : 'Please select the symptom severity.');
+                return;
+            }
+            if (!symptoms) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez décrire les symptômes avant d\'obtenir un diagnostic.' : 'Please describe the symptoms before getting a diagnosis.');
+                return;
+            }
+
+            // Check if online before attempting AI diagnosis
+            if (!navigator.onLine) {
+                showToast(currentLanguage === 'fr' ? 'Vous êtes hors ligne. Le diagnostic IA nécessite une connexion internet.' : 'You are offline. AI Diagnosis requires an internet connection.');
+                diagnosisResultDiv.classList.add('hidden');
+                return;
+            }
+
+
+            // Show loader and disable button
+            diagnoseButton.disabled = true;
+            loader.style.display = 'block';
+            buttonText.textContent = currentLanguage === 'fr' ? 'Diagnostic en cours...' : 'Diagnosing...';
+            diagnosisResultDiv.classList.add('hidden'); // Hide previous result
+
+            try {
+                // Construct the prompt for the Gemini API, including crop type and severity
+                const prompt = `Act as an expert agricultural diagnostician. Respond in ${currentLanguage === 'fr' ? 'French' : 'English'}.
+                Crop Type: ${cropType}
+                Symptom Severity: ${severity}
+                Symptoms: ${symptoms}
+
+                Based on the above, provide a concise diagnosis of the most probable plant disease or issue for a ${cropType} plant, considering the ${severity} symptom severity, and suggest immediate, practical recommendations for treatment or management.
+
+                Structure your response with:
+                **Probable Diagnosis:** [Your diagnosis here]
+                **Recommendations:**
+                * [Recommendation 1]
+                * [Recommendation 2]
+                * [etc.]
+                `;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+
+                // Note: apiKey is an empty string as Canvas runtime provides it
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const diagnosisText = result.candidates[0].content.parts[0].text;
+                    displayDiagnosisResult(cropType, severity, symptoms, diagnosisText);
+
+                    // Save to IndexedDB, including cropType and severity
+                    const diagnosisRecord = {
+                        cropType: cropType,
+                        severity: severity,
+                        symptoms: symptoms,
+                        diagnosis: diagnosisText,
+                        timestamp: Date.now()
+                    };
+                    await addRecordToDB(DIAGNOSES_STORE, diagnosisRecord);
+                    showToast(currentLanguage === 'fr' ? 'Diagnostic enregistré dans l\'historique.' : 'Diagnosis saved to history.');
+                    renderDiagnosisHistory(); // Refresh history view
+                } else {
+                    console.error('Unexpected API response structure:', result);
+                    showToast(currentLanguage === 'fr' ? 'Impossible d\'obtenir un diagnostic. Veuillez réessayer.' : 'Could not get a diagnosis. Please try again.');
+                    resultContentDiv.innerHTML = `<p class="text-red-600">${currentLanguage === 'fr' ? 'Échec de l\'obtention d\'un diagnostic. Veuillez réessayer avec une description plus détaillée.' : 'Failed to get a diagnosis. Please try again with a more detailed description.'}</p>`;
+                    diagnosisResultDiv.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error('Error fetching diagnosis:', error);
+                showToast(currentLanguage === 'fr' ? 'Une erreur est survenue lors du diagnostic. Veuillez vérifier votre connexion internet et réessayer.' : 'An error occurred during diagnosis. Please check your internet connection and try again.');
+                resultContentDiv.innerHTML = `<p class="text-red-600">${currentLanguage === 'fr' ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.'}</p>`;
+                diagnosisResultDiv.classList.remove('hidden');
+            } finally {
+                // Hide loader and enable button
+                loader.style.display = 'none';
+                buttonText.textContent = translations[currentLanguage]['getDiagnosis'];
+                diagnoseButton.disabled = false;
+            }
+        }
+
+        /**
+         * Copies the current diagnosis result content to the clipboard.
+         */
+        function copyDiagnosisToClipboard() {
+            const textToCopy = resultContentDiv.innerText; // Get plain text from the result div
+
+            // Create a temporary textarea element
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+
+            // Select the text and copy it
+            tempTextArea.select();
+            document.execCommand('copy');
+
+            // Remove the temporary textarea
+            document.body.removeChild(tempTextArea);
+
+            showToast(currentLanguage === 'fr' ? 'Diagnostic copié dans le presse-papiers !' : 'Diagnosis copied to clipboard!');
+        }
+
+        /**
+         * Clears the input fields and hides the diagnosis result.
+         */
+        function handleClearDiagnosisInputs() {
+            cropTypeSelect.value = '';
+            severitySelect.value = '';
+            symptomsInput.value = '';
+            imageUpload.value = ''; // Clear file input
+            fileNameSpan.textContent = translations[currentLanguage]['noFileChosen'];
+            diagnosisResultDiv.classList.add('hidden');
+            showToast(currentLanguage === 'fr' ? 'Saisie du diagnostic effacée.' : 'Diagnosis input cleared.');
+        }
+
+        /**
+         * Handles clearing the entire diagnosis history after confirmation.
+         */
+        function handleClearDiagnosisHistory() {
+            showModal(currentLanguage === 'fr' ? 'Êtes-vous sûr de vouloir effacer tout l\'historique des diagnostics ? Cette action est irréversible.' : 'Are you sure you want to clear all diagnosis history? This action cannot be undone.',
+                async () => { // On Confirm
+                    await clearAllRecordsFromDB(DIAGNOSES_STORE);
+                    showToast(currentLanguage === 'fr' ? 'Tout l\'historique des diagnostics a été effacé.' : 'All diagnosis history cleared.');
+                    renderDiagnosisHistory(); // Re-render history which will show "No past diagnoses"
+                },
+                () => { // On Cancel
+                    showToast(currentLanguage === 'fr' ? 'Effacement de l\'historique annulé.' : 'Clear history cancelled.');
+                }
+            );
+        }
+
+        /**
+         * Handles adding a new crop plan.
+         */
+        async function handleAddCropPlan() {
+            const cropName = planCropName.value.trim();
+            const plantingDate = planPlantingDate.value;
+            const harvestDate = planHarvestDate.value;
+            const notes = planNotes.value.trim();
+
+            if (!cropName || !plantingDate) {
+                showToast(currentLanguage === 'fr' ? 'Le nom de la culture et la date de plantation sont obligatoires pour un plan de culture.' : 'Crop Name and Planting Date are required for a crop plan.');
+                return;
+            }
+
+            const cropPlanData = {
+                cropName,
+                plantingDate,
+                harvestDate,
+                notes,
+                timestamp: Date.now()
+            };
+
+            try {
+                await addRecordToDB(CROP_PLANS_STORE, cropPlanData);
+                showToast(currentLanguage === 'fr' ? 'Plan de culture ajouté avec succès !' : 'Crop plan added successfully!');
+                planCropName.value = '';
+                planPlantingDate.value = '';
+                planHarvestDate.value = '';
+                planNotes.value = '';
+                renderCropPlans(); // Refresh the list
+            } catch (error) {
+                console.error('Error adding crop plan:', error);
+                showToast(currentLanguage === 'fr' ? 'Erreur lors de l\'enregistrement du plan de culture.' : 'Error saving crop plan.');
+            }
+        }
+
+        /**
+         * Handles clearing all crop plans.
+         */
+        function handleClearCropPlans() {
+            showModal(currentLanguage === 'fr' ? 'Êtes-vous sûr de vouloir effacer tous les plans de culture ? Cette action est irréversible.' : 'Are you sure you want to clear all crop plans? This action cannot be undone.',
+                async () => {
+                    await clearAllRecordsFromDB(CROP_PLANS_STORE);
+                    showToast(currentLanguage === 'fr' ? 'Tous les plans de culture ont été effacés.' : 'All crop plans cleared.');
+                    renderCropPlans();
+                },
+                () => {
+                    showToast(currentLanguage === 'fr' ? 'Effacement des plans de culture annulé.' : 'Clear crop plans cancelled.');
+                }
+            );
+        }
+
+        /**
+         * Handles saving a calendar event.
+         */
+        async function handleSaveEvent() {
+            const title = eventTitleInput.value.trim();
+            const description = eventDescriptionInput.value.trim();
+            const relatedCropId = eventRelatedCropSelect.value;
+
+            if (!title) {
+                showToast(currentLanguage === 'fr' ? 'Le titre de l\'événement est obligatoire.' : 'Event title is required.');
+                return;
+            }
+            if (!selectedDateForEvent) {
+                showToast(currentLanguage === 'fr' ? 'Aucune date sélectionnée pour l\'événement.' : 'No date selected for event.');
+                return;
+            }
+
+            const eventData = {
+                date: selectedDateForEvent.toISOString().split('T')[0], // Store asYYYY-MM-DD
+                title,
+                description,
+                relatedCropId: relatedCropId || null,
+                timestamp: Date.now()
+            };
+
+            try {
+                await addRecordToDB(CALENDAR_EVENTS_STORE, eventData);
+                showToast(currentLanguage === 'fr' ? 'Événement enregistré !' : 'Event saved!');
+                closeModal('eventModal');
+                renderCalendar(currentCalendarDate); // Re-render calendar to show new event
+            } catch (error) {
+                console.error('Error saving event:', error);
+                showToast(currentLanguage === 'fr' ? 'Erreur lors de l\'enregistrement de l\'événement.' : 'Error saving event.');
+            }
+        }
+
+        /**
+         * Handles clearing all calendar events.
+         */
+        function handleClearCalendarEvents() {
+            showModal(currentLanguage === 'fr' ? 'Êtes-vous sûr de vouloir effacer tous les événements du calendrier ? Cette action est irréversible.' : 'Are you sure you want to clear all calendar events? This action cannot be undone.',
+                async () => {
+                    await clearAllRecordsFromDB(CALENDAR_EVENTS_STORE);
+                    showToast(currentLanguage === 'fr' ? 'Tous les événements du calendrier ont été effacés.' : 'All calendar events cleared.');
+                    renderCalendar(currentCalendarDate); // Re-render calendar to be empty
+                },
+                () => {
+                    showToast(currentLanguage === 'fr' ? 'Effacement des événements du calendrier annulé.' : 'Clear calendar events cancelled.');
+                }
+            );
+        }
+
+        /**
+         * Renders the expense records from IndexedDB into the UI.
+         */
+        async function renderExpenses() {
+            expensesList.innerHTML = ''; // Clear current list
+            const expenses = await getRecordsFromDB(EXPENSES_STORE, 'date'); // Sort by date
+            
+            if (expenses.length === 0) {
+                noExpensesMessage.classList.remove('hidden');
+                clearExpensesButton.classList.add('hidden');
+                return;
+            } else {
+                noExpensesMessage.classList.add('hidden');
+                clearExpensesButton.classList.remove('hidden');
+            }
+
+            expenses.forEach(expense => {
+                const expenseItem = document.createElement('div');
+                expenseItem.className = 'bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-200';
+                expenseItem.innerHTML = `
+                    <p class="font-semibold text-lg text-red-700 mb-2">${translations[currentLanguage]['amountLabel']}: $${parseFloat(expense.amount).toFixed(2)}</p>
+                    <p class="text-sm text-gray-600"><strong>${translations[currentLanguage]['categoryLabel']}:</strong> ${translations[currentLanguage][expense.category.toLowerCase()] || expense.category || 'N/A'}</p>
+                    <p class="text-sm text-gray-600"><strong>${translations[currentLanguage]['dateLabel']}:</strong> ${expense.date || 'N/A'}</p>
+                    <p class="text-sm text-gray-600 mt-2"><strong>${translations[currentLanguage]['notesLabel']}:</strong> ${expense.notes || translations[currentLanguage]['noNotes'] || 'No notes.'}</p>
+                `;
+                expensesList.appendChild(expenseItem);
+            });
+        }
+
+        /**
+         * Handles adding a new expense record.
+         */
+        async function handleAddExpense() {
+            const amount = parseFloat(expenseAmount.value);
+            const category = expenseCategory.value;
+            const date = expenseDate.value;
+            const notes = expenseNotes.value.trim();
+
+            if (isNaN(amount) || amount <= 0) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez saisir un montant de dépense valide.' : 'Please enter a valid expense amount.');
+                return;
+            }
+            if (!category) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez sélectionner une catégorie de dépense.' : 'Please select an expense category.');
+                return;
+            }
+            if (!date) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez sélectionner une date de dépense.' : 'Please select an expense date.');
+                return;
+            }
+
+            const expenseData = {
+                amount,
+                category,
+                date,
+                notes,
+                timestamp: Date.now()
+            };
+
+            try {
+                await addRecordToDB(EXPENSES_STORE, expenseData);
+                showToast(currentLanguage === 'fr' ? 'Dépense ajoutée avec succès !' : 'Expense added successfully!');
+                expenseAmount.value = '';
+                expenseCategory.value = '';
+                expenseDate.value = '';
+                expenseNotes.value = '';
+                renderExpenses(); // Refresh the list
+            } catch (error) {
+                console.error('Error adding expense:', error);
+                showToast(currentLanguage === 'fr' ? 'Erreur lors de l\'enregistrement de la dépense.' : 'Error saving expense.');
+            }
+        }
+
+        /**
+         * Handles clearing all expense records.
+         */
+        function handleClearExpenses() {
+            showModal(currentLanguage === 'fr' ? 'Êtes-vous sûr de vouloir effacer tous les enregistrements de dépenses ? Cette action est irréversible.' : 'Are you sure you want to clear all expense records? This action cannot be undone.',
+                async () => {
+                    await clearAllRecordsFromDB(EXPENSES_STORE);
+                    showToast(currentLanguage === 'fr' ? 'Tous les enregistrements de dépenses ont été effacés.' : 'All expense records cleared.');
+                    renderExpenses();
+                },
+                () => {
+                    showToast(currentLanguage === 'fr' ? 'Effacement des dépenses annulé.' : 'Clear expenses cancelled.');
+                }
+            );
+        }
+
+        /**
+         * Renders the yield records from IndexedDB into the UI.
+         */
+        async function renderYields() {
+            yieldsList.innerHTML = ''; // Clear current list
+            const yields = await getRecordsFromDB(YIELDS_STORE, 'date'); // Sort by date
+            const cropPlans = await getRecordsFromDB(CROP_PLANS_STORE); // Get crop plans for lookup
+            const cropPlanMap = new Map(cropPlans.map(plan => [plan.id, plan.cropName]));
+            
+            if (yields.length === 0) {
+                noYieldsMessage.classList.remove('hidden');
+                clearYieldsButton.classList.add('hidden');
+                return;
+            } else {
+                noYieldsMessage.classList.add('hidden');
+                clearYieldsButton.classList.remove('hidden');
+            }
+
+            yields.forEach(yieldRecord => {
+                const yieldItem = document.createElement('div');
+                yieldItem.className = 'bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-200';
+                const relatedCropName = yieldRecord.relatedCropId ? cropPlanMap.get(yieldRecord.relatedCropId) : 'N/A';
+
+                yieldItem.innerHTML = `
+                    <p class="font-semibold text-lg text-emerald-700 mb-2">${translations[currentLanguage]['amountLabel']}: ${parseFloat(yieldRecord.amount).toFixed(2)} ${translations[currentLanguage][yieldRecord.unit] || yieldRecord.unit}</p>
+                    <p class="text-sm text-gray-600"><strong>${translations[currentLanguage]['cropPlan'] || 'Crop Plan'}:</strong> ${relatedCropName}</p>
+                    <p class="text-sm text-gray-600"><strong>${translations[currentLanguage]['harvestDateLabel']}:</strong> ${yieldRecord.date || 'N/A'}</p>
+                    <p class="text-sm text-gray-600 mt-2"><strong>${translations[currentLanguage]['notesLabel']}:</strong> ${yieldRecord.notes || translations[currentLanguage]['noNotes'] || 'No notes.'}</p>
+                `;
+                yieldsList.appendChild(yieldItem);
+            });
+        }
+
+        /**
+         * Handles adding a new yield record.
+         */
+        async function handleAddYield() {
+            const amount = parseFloat(yieldAmount.value);
+            const unit = yieldUnit.value;
+            const relatedCropId = yieldCropSelect.value;
+            const date = yieldDate.value;
+            const notes = yieldNotes.value.trim();
+
+            if (isNaN(amount) || amount <= 0) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez saisir un montant de rendement valide.' : 'Please enter a valid yield amount.');
+                return;
+            }
+            if (!unit) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez sélectionner une unité pour le rendement.' : 'Please select a unit for the yield.');
+                return;
+            }
+            if (!relatedCropId) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez sélectionner un plan de culture associé.' : 'Please select a related crop plan.');
+                return;
+            }
+            if (!date) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez sélectionner une date de récolte.' : 'Please select a harvest date.');
+                return;
+            }
+
+            const yieldData = {
+                amount,
+                unit,
+                relatedCropId,
+                date,
+                notes,
+                timestamp: Date.now()
+            };
+
+            try {
+                await addRecordToDB(YIELDS_STORE, yieldData);
+                showToast(currentLanguage === 'fr' ? 'Enregistrement du rendement ajouté avec succès !' : 'Yield record added successfully!');
+                yieldAmount.value = '';
+                yieldUnit.value = '';
+                yieldCropSelect.value = '';
+                yieldDate.value = '';
+                yieldNotes.value = '';
+                renderYields(); // Refresh the list
+            } catch (error) {
+                console.error('Error adding yield record:', error);
+                showToast(currentLanguage === 'fr' ? 'Erreur lors de l\'enregistrement du rendement.' : 'Error saving yield record.');
+            }
+        }
+
+        /**
+         * Handles clearing all yield records.
+         */
+        function handleClearYields() {
+            showModal(currentLanguage === 'fr' ? 'Êtes-vous sûr de vouloir effacer tous les enregistrements de rendement ? Cette action est irréversible.' : 'Are you sure you want to clear all yield records? This action cannot be undone.',
+                async () => {
+                    await clearAllRecordsFromDB(YIELDS_STORE);
+                    showToast(currentLanguage === 'fr' ? 'Tous les enregistrements de rendement ont été effacés.' : 'All yield records cleared.');
+                    renderYields();
+                },
+                () => {
+                    showToast(currentLanguage === 'fr' ? 'Effacement des enregistrements de rendement annulé.' : 'Clear yield records cancelled.');
+                }
+            );
+        }
+
+        /**
+         * Handles generating AI planting recommendations.
+         */
+        async function handlePlantingRecommendation() {
+            const nitrogen = soilNitrogen.value.trim();
+            const phosphorus = soilPhosphorus.value.trim();
+            const potassium = soilPotassium.value.trim();
+            const ph = phLevel.value.trim();
+            const previousYieldNotes = previousCropYieldNotes.value.trim();
+            const pestNotes = pestIssuesNotes.value.trim();
+            const weatherNotes = lastSeasonWeatherNotes.value.trim();
+
+            // Basic validation
+            if (!nitrogen && !phosphorus && !potassium && !ph && !previousYieldNotes && !pestNotes && !weatherNotes) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez saisir des informations (données du sol, notes de rendement, problèmes de parasites ou météo) pour les recommandations.' : 'Please enter some information (soil data, yield notes, pest issues, or weather) for recommendations.');
+                return;
+            }
+            if (!navigator.onLine) {
+                showToast(currentLanguage === 'fr' ? 'Vous êtes hors ligne. Les recommandations de plantation IA nécessitent une connexion internet.' : 'You êtes hors ligne. AI Planting Recommendations require an internet connection.');
+                plantingRecommendationResult.classList.add('hidden');
+                return;
+            }
+
+            // Show loader and disable button
+            getPlantingRecommendationButton.disabled = true;
+            plantingLoader.style.display = 'block';
+            plantingButtonText.textContent = currentLanguage === 'fr' ? 'Génération en cours...' : 'Generating...';
+            plantingRecommendationResult.classList.add('hidden'); // Hide previous result
+
+            try {
+                // Construct the prompt for the Gemini API
+                const prompt = `As an expert agricultural advisor, provide optimized planting recommendations based on the following factors. Respond in ${currentLanguage === 'fr' ? 'French' : 'English'}.
+
+                ${nitrogen ? `**Soil Nitrogen (N):** ${nitrogen} ppm` : ''}
+                ${phosphorus ? `**Soil Phosphorus (P):** ${phosphorus} ppm` : ''}
+                ${potassium ? `**Soil Potassium (K):** ${potassium} ppm` : ''}
+                ${ph ? `**Soil pH Level:** ${ph}` : ''}
+                ${previousYieldNotes ? `**Previous Season's Crop Yield Notes:** ${previousYieldNotes}` : ''}
+                ${pestNotes ? `**Current/Historical Pest/Disease Issues:** ${pestNotes}` : ''}
+                ${weatherNotes ? `**Last Season's Weather Patterns:** ${weatherNotes}` : ''}
+
+                Consider all provided factors. If specific soil nutrients are low, suggest appropriate amendments. If pest/disease issues are noted, suggest resistant varieties or preventative measures. For weather, consider its impact on crop choice.
+
+                Provide recommendations including:
+                * **Recommended Crop(s):** [Specific crop or types, e.g., drought-resistant corn, nitrogen-fixing legumes]
+                * **Soil Amendments/Fertilization:** [Specific recommendations for NPK, pH adjustment, organic matter]
+                * **Pest/Disease Management:** [Strategies, e.g., crop rotation, specific treatments, resistant varieties]
+                * **Planting Timing/Technique:** [Optimal time, spacing, irrigation considerations]
+                * **General Considerations:** [Any other important advice]
+
+                Structure your response clearly using bullet points and bolding for key headings.
+                `;
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+
+                const apiKey = ""; // Canvas runtime provides this
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const recommendationText = result.candidates[0].content.parts[0].text;
+                    let formattedRecommendation = recommendationText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold markdown
+                    formattedRecommendation = formattedRecommendation.replace(/\n/g, '<br>'); // Newlines to <br>
+
+                    plantingResultContent.innerHTML = formattedRecommendation;
+                    plantingRecommendationResult.classList.remove('hidden');
+                    showToast(currentLanguage === 'fr' ? 'Recommandations de plantation générées !' : 'Planting recommendations generated!');
+                } else {
+                    console.error('Unexpected API response structure:', result);
+                    showToast(currentLanguage === 'fr' ? 'Impossible d\'obtenir des recommandations de plantation. Veuillez réessayer.' : 'Could not get planting recommendations. Please try again.');
+                    plantingResultContent.innerHTML = `<p class="text-red-600">${currentLanguage === 'fr' ? 'Échec de l\'obtention des recommandations. Veuillez réessayer avec des entrées plus spécifiques.' : 'Failed to get recommendations. Please try again with more specific inputs.'}</p>`;
+                    plantingRecommendationResult.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error('Error fetching planting recommendations:', error);
+                showToast(currentLanguage === 'fr' ? 'Une erreur est survenue lors de la génération des recommandations. Veuillez vérifier votre connexion internet et réessayer.' : 'An error occurred during recommendation generation. Please check your internet connection and try again.');
+                plantingResultContent.innerHTML = `<p class="text-red-600">${currentLanguage === 'fr' ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.'}</p>`;
+                plantingRecommendationResult.classList.remove('hidden');
+            } finally {
+                // Hide loader and enable button
+                plantingLoader.style.display = 'none';
+                plantingButtonText.textContent = translations[currentLanguage]['getRecommendations'];
+                getPlantingRecommendationButton.disabled = false;
+            }
+        }
+
+        /**
+         * Clears the input fields for planting recommendations.
+         */
+        function handleClearPlantingInputs() {
+            soilNitrogen.value = '';
+            soilPhosphorus.value = '';
+            soilPotassium.value = '';
+            phLevel.value = '';
+            previousCropYieldNotes.value = '';
+            pestIssuesNotes.value = '';
+            lastSeasonWeatherNotes.value = '';
+            plantingRecommendationResult.classList.add('hidden');
+            showToast(currentLanguage === 'fr' ? 'Saisies des recommandations de plantation effacées.' : 'Planting recommendation inputs cleared.');
+        }
+
+
+        // --- Event Listeners ---
+        menuButton.addEventListener('click', toggleMobileMenu);
+        closeMenuButton.addEventListener('click', toggleMobileMenu);
+        diagnoseButton.addEventListener('click', handleDiagnosis);
+        clearButton.addEventListener('click', handleClearDiagnosisInputs);
+        clearHistoryButton.addEventListener('click', handleClearDiagnosisHistory);
+        copyDiagnosisButton.addEventListener('click', copyDiagnosisToClipboard);
+
+        // Language switcher event listeners
+        languageSwitcherDesktop.addEventListener('change', (event) => {
+            currentLanguage = event.target.value;
+            syncLanguageSwitchers();
+            updateUIForLanguage(currentLanguage);
+            renderCalendar(currentCalendarDate); // Re-render calendar for language-specific day names/month
+            renderDiagnosisHistory(); // Re-render history for language-specific dates
+            renderCropPlans(); // Re-render for any language-specific fields
+            renderExpenses(); // Re-render for any language-specific fields
+            renderYields(); // Re-render for any language-specific fields
+            showToast(currentLanguage === 'fr' ? 'Langue mise à jour en Français.' : 'Language updated to English.');
+        });
+        languageSwitcherMobile.addEventListener('change', (event) => {
+            currentLanguage = event.target.value;
+            syncLanguageSwitchers();
+            updateUIForLanguage(currentLanguage);
+            renderCalendar(currentCalendarDate); // Re-render calendar for language-specific day names/month
+            renderDiagnosisHistory(); // Re-render history for language-specific dates
+            renderCropPlans(); // Re-render for any language-specific fields
+            renderExpenses(); // Re-render for any language-specific fields
+            renderYields(); // Re-render for any language-specific fields
+            showToast(currentLanguage === 'fr' ? 'Langue mise à jour en Français.' : 'Language updated to English.');
+        });
+
+
+        // Crop Planning Event Listeners
+        addCropPlanButton.addEventListener('click', handleAddCropPlan);
+        clearCropPlansButton.addEventListener('click', handleClearCropPlans);
+
+        // Calendar Event Listeners
+        prevMonthButton.addEventListener('click', () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            renderCalendar(currentCalendarDate);
+        });
+        nextMonthButton.addEventListener('click', () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            renderCalendar(currentCalendarDate);
+        });
+        saveEventButton.addEventListener('click', handleSaveEvent);
+        cancelEventButton.addEventListener('click', () => closeModal('eventModal'));
+        clearCalendarEventsButton.addEventListener('click', handleClearCalendarEvents);
+
+        // Weather Event Listeners
+        getWeatherButton.addEventListener('click', () => getWeatherByCity(cityInput.value.trim(), countryInput.value.trim()));
+
+        // Expense Tracking Event Listeners
+        addExpenseButton.addEventListener('click', handleAddExpense);
+        clearExpensesButton.addEventListener('click', handleClearExpenses);
+
+        // Yield Tracking Event Listeners
+        addYieldButton.addEventListener('click', handleAddYield);
+        clearYieldsButton.addEventListener('click', handleClearYields);
+
+        // Planting Recommendations AI Event Listeners
+        getPlantingRecommendationButton.addEventListener('click', handlePlantingRecommendation);
+        clearPlantingInputsButton.addEventListener('click', handleClearPlantingInputs);
+
+        // Back to Top Button Event Listener
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Initialize DB and render content on page load
+        window.addEventListener('load', async () => {
+            // Set initial language based on browser preference or default to English
+            const browserLang = navigator.language.split('-')[0];
+            if (translations[browserLang]) {
+                currentLanguage = browserLang;
+            }
+            syncLanguageSwitchers(); // Sync dropdowns to initial language
+            updateUIForLanguage(currentLanguage); // Apply initial translations
+
+
+            await initDb();
+            await renderDiagnosisHistory();
+            await renderCropPlans(); // This now also populates crop plan selects for events and yields
+            await renderCalendar(currentCalendarDate); // Render calendar for current month
+            await renderExpenses(); // Render expenses on load
+            await renderYields();   // Render yields on load
+            // Scroll to the top of the diagnosis section on load
+            document.getElementById('diagnosis').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
